@@ -94,3 +94,95 @@ func TestAddNode(t *testing.T) {
 	assert.Equal(t, "autoscaling", node.Group, "returned Node in group \"autoscaling\"")
 
 }
+
+func TestGetNodepool(t *testing.T) {
+
+	organizationKey := 6
+	clusterKey := 1665
+	nodepoolKey := 80
+
+	mux := http.NewServeMux()
+	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	}))
+
+	responseText := "{\"pk\":80,\"cluster\":1665,\"name\":\"Default Worker Pool\",\"instance_id\":\"spc5u92han-pool-1\",\"instance_size\":\"2gb\",\"platform\":\"coreos\",\"channel\":\"stable\",\"zone\":\"nyc1\",\"provider_subnet_id\":\"\",\"provider_subnet_cidr\":\"\",\"node_count\":4,\"role\":\"worker\",\"state\":\"active\",\"is_default\":true,\"created\":\"2017-05-30T15:59:09.030257Z\",\"updated\":\"2017-05-30T19:17:01.219649Z\"}"
+
+	mux.Handle(fmt.Sprintf("/orgs/%d/clusters/%d/nodepools/%d", organizationKey, clusterKey, nodepoolKey),
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, http.MethodGet, r.Method)
+			// postedData, err := ioutil.ReadAll(r.Body)
+			// require.Nil(t, err)
+			// assert.True(t, 0 == len(postedData), "postedData zero length")
+			fmt.Fprint(w, responseText)
+		}))
+
+	ts := httptest.NewServer(mux)
+	defer ts.Close()
+
+	token := "not used"
+	client := NewClient(token, ts.URL)
+
+	nodepool, err := client.GetNodepool(organizationKey, clusterKey, nodepoolKey)
+	require.Nil(t, err)
+	assert.Equal(t, "Default Worker Pool", nodepool.Name, "nodepool.Name")
+	assert.Equal(t, "spc5u92han-pool-1", nodepool.Group, "nodepool.Group")
+	assert.Equal(t, "", nodepool.SubnetCIDR)
+	assert.Equal(t, "", nodepool.SubnetCIDR)
+	assert.Equal(t, "", nodepool.SubnetID)
+	assert.Equal(t, clusterKey, nodepool.ClusterID)
+	assert.Equal(t, 4, nodepool.Count)
+	assert.Equal(t, "coreos", nodepool.Platform)
+	assert.Equal(t, "2gb", nodepool.Size)
+	assert.Equal(t, "worker", nodepool.Role)
+	assert.Equal(t, true, nodepool.IsDefault)
+	assert.Equal(t, "nyc1", nodepool.Zone)
+}
+
+func TestListNodepools(t *testing.T) {
+
+	organizationKey := 6
+	clusterKey := 1665
+
+	mux := http.NewServeMux()
+	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	}))
+
+	responseText := "[{\"pk\":80,\"cluster\":1665,\"name\":\"Default Worker Pool\",\"instance_id\":\"spc5u92han-pool-1\",\"instance_size\":\"2gb\",\"platform\":\"coreos\",\"channel\":\"stable\",\"zone\":\"nyc1\",\"provider_subnet_id\":\"\",\"provider_subnet_cidr\":\"\",\"node_count\":4,\"role\":\"worker\",\"state\":\"active\",\"is_default\":true,\"created\":\"2017-05-30T15:59:09.030257Z\",\"updated\":\"2017-05-30T19:17:01.219649Z\"}]"
+
+	mux.Handle(fmt.Sprintf("/orgs/%d/clusters/%d/nodepools", organizationKey, clusterKey),
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, http.MethodGet, r.Method)
+			// postedData, err := ioutil.ReadAll(r.Body)
+			// require.Nil(t, err)
+			// assert.True(t, 0 == len(postedData), "postedData zero length")
+			fmt.Fprint(w, responseText)
+		}))
+
+	ts := httptest.NewServer(mux)
+	defer ts.Close()
+
+	token := "not used"
+	client := NewClient(token, ts.URL)
+
+	nodepools, err := client.ListNodepools(organizationKey, clusterKey)
+	require.Nil(t, err)
+
+	assert.Equal(t, 1, len(nodepools), "one nodepool listed")
+
+	nodepool := nodepools[0]
+
+	assert.Equal(t, "Default Worker Pool", nodepool.Name, "nodepool.Name")
+	assert.Equal(t, "spc5u92han-pool-1", nodepool.Group, "nodepool.Group")
+	assert.Equal(t, "", nodepool.SubnetCIDR)
+	assert.Equal(t, "", nodepool.SubnetCIDR)
+	assert.Equal(t, "", nodepool.SubnetID)
+	assert.Equal(t, clusterKey, nodepool.ClusterID)
+	assert.Equal(t, 4, nodepool.Count)
+	assert.Equal(t, "coreos", nodepool.Platform)
+	assert.Equal(t, "2gb", nodepool.Size)
+	assert.Equal(t, "worker", nodepool.Role)
+	assert.Equal(t, true, nodepool.IsDefault)
+	assert.Equal(t, "nyc1", nodepool.Zone)
+}

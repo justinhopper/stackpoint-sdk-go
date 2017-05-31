@@ -230,8 +230,56 @@ func (client *APIClient) DeleteNode(organizationID, clusterID, nodeID int) ([]by
 	// return node, nil
 }
 
+// GetNodepool retrieves data for a nodepool
+func (client *APIClient) GetNodepool(organizationID, clusterID, nodepoolID int) (Nodepool, error) {
+	path := fmt.Sprintf("/orgs/%d/clusters/%d/nodepools/%d", organizationID, clusterID, nodepoolID)
+	content, err := client.get(path)
+	if err != nil {
+		return Nodepool{}, err
+	}
+	glog.V(8).Info(string(content))
+	var nodepool Nodepool
+	err = json.Unmarshal(content, &nodepool)
+	if err != nil {
+		return Nodepool{}, err
+	}
+	return nodepool, nil
+}
+
+// ListNodepools retrieves data for all nodepools
+func (client *APIClient) ListNodepools(organizationID, clusterID int) ([]Nodepool, error) {
+	path := fmt.Sprintf("/orgs/%d/clusters/%d/nodepools", organizationID, clusterID)
+	content, err := client.get(path)
+	if err != nil {
+		return []Nodepool{}, err
+	}
+	glog.V(8).Info(string(content))
+	var nodepools []Nodepool
+	err = json.Unmarshal(content, &nodepools)
+	if err != nil {
+		return []Nodepool{}, err
+	}
+	return nodepools, nil
+}
+
 // AddNodes sends a request to add nodes to a cluster, returns immediately with the Node under construction
 func (client *APIClient) AddNodes(organizationID, clusterID int, nodeAdd NodeAdd) (Node, error) {
+	path := fmt.Sprintf("/orgs/%d/clusters/%d/add_node", organizationID, clusterID)
+	content, err := client.post(path, nodeAdd)
+	if err != nil {
+		return Node{}, err
+	}
+	glog.V(8).Info("add node response: " + string(content))
+	var response Node
+	err = json.Unmarshal(content, &response)
+	if err != nil {
+		return Node{}, err
+	}
+	return response, nil
+}
+
+// AddNodepool sends a request to define a new nodepool
+func (client *APIClient) AddNodepool(organizationID, clusterID int, nodeAdd NodeAdd) (Node, error) {
 	path := fmt.Sprintf("/orgs/%d/clusters/%d/add_node", organizationID, clusterID)
 	content, err := client.post(path, nodeAdd)
 	if err != nil {

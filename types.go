@@ -103,9 +103,34 @@ type Node struct {
 
 // NodeAdd encapsulates the details of a call to add nodes to a cluster.
 type NodeAdd struct {
-	Size  string `json:"size"`
-	Count int    `json:"node_count"`
-	Group string `json:"group,omitempty"`
+	Size        string `json:"size"`
+	Count       int    `json:"node_count"`
+	Group       string `json:"group,omitempty"` // should map to Nodepool.Group
+	Role        string `json:"role,omitempty"`
+	NodepoolKey int    `json:"node_pool,omitempty"` // should map to Nodepool.PrimaryKey
+	Zone        string `json:"zone,omitempty"`
+	SubnetID    string `json:"provider_subnet_id,omitempty"`
+	SubnetCIDR  string `json:"provider_subnet_cidr,omitempty"`
+}
+
+// Nodepool defines a set of nodes.  Naming of fields (ID vs Key, string vs int) should try to be consistent
+type Nodepool struct {
+	PrimaryKey int       `json:"pk"`
+	Name       string    `json:"name"`
+	ClusterID  int       `json:"cluster"`
+	Size       string    `json:"instance_size"`
+	Count      int       `json:"node_count"`
+	Group      string    `json:"instance_id"`
+	Role       string    `json:"role"`
+	Platform   string    `json:"platform"`
+	Channel    string    `json:"channel"`
+	Zone       string    `json:"zone"`
+	SubnetID   string    `json:"provider_subnet_id"`
+	SubnetCIDR string    `json:"provider_subnet_cidr"`
+	State      string    `json:"state"`
+	IsDefault  bool      `json:"is_default"`
+	Updated    time.Time `json:"updated,omitempty"`
+	Created    time.Time `json:"created"`
 }
 
 // PersistentVolume is the representation of a Kubernetes PersistentVolume in
