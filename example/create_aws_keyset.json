@@ -1,0 +1,16 @@
+{
+  "name": "My AWS Keyset",
+  "category": "provider",
+  "entity": "aws",
+  "workspaces": [],
+  "keys": [
+    {
+      "key_type": "pub",
+      "key": "AKIAIXH7J9KGB56VWZGA"
+    },
+    {
+      "key_type": "pvt",
+      "key": "FfgssHsds9u3rfsjOHDsssy8w3ehdsokFDDrR"
+    }
+  ]
+}
