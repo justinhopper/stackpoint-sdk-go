@@ -20,17 +20,23 @@ const orgid = 111
 func main() {
     client := spio.NewClient(mytoken, myurl)
 
-    keysets, err := client.GetKeysets(orgid)
+    clusters, err := client.GetClusters(orgid)
     if err != nil { fmt.Printf("Error: %v\n", err); os.Exit(1) }
-    for i := 0; i < len(keysets); i++ {
-        fmt.Printf("Keyset(%d): %v\n", keysets[i].PrimaryKey, keysets[i].Name)
+    for i := 0; i < len(clusters); i++ {
+        fmt.Printf("Cluster(%d): %v\n", clusters[i].PrimaryKey, clusters[i].Name)
+    }
+    if len(clusters) == 0 {
+        fmt.Printf("Sorry, no clusters defined yet\n")
+        os.Exit(0)
     }
 
-    var keysetid int
-    fmt.Printf("Enter keyset ID to inspect: ")
-    fmt.Scanf("%d", &keysetid)
+    var clusterid int
+    fmt.Printf("Enter cluster ID to inspect: ")
+    fmt.Scanf("%d", &clusterid)
 
-    keyset, err := client.GetKeyset(orgid, keysetid)
+    cluster, err := client.GetCluster(orgid, clusterid)
     if err != nil { fmt.Printf("Error: %v\n", err); os.Exit(1) }
-    PrettyPrint(keyset)
+    PrettyPrint(cluster)
+
 }
+
