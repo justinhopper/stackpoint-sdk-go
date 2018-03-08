@@ -6,12 +6,12 @@ import (
     spio "github.com/StackPointCloud/stackpoint-sdk-go/pkg/stackpointio"
 )
 
-const mytoken = `98addc5550b98ab74499dd4cd0dc4dd03e0e0d0be82acb0213d1ec7ef2c79457`
-const myurl = `https://api-staging.stackpoint.io/`
 const orgid = 111
 
 func main() {
-    client := spio.NewClient(mytoken, myurl)
+    token := os.Getenv("CLUSTER_API_TOKEN")
+    endpoint := os.Getenv("SPC_BASE_API_URL")
+    client := spio.NewClient(token, endpoint)
 
     keysets, err := client.GetKeysets(orgid)
     if err != nil { fmt.Printf("Error: %v\n", err); os.Exit(1) }

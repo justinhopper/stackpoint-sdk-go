@@ -13,11 +13,10 @@ func PrettyPrint(v interface{}) {
       println(string(b))
 }
 
-const mytoken string = `98addc5550b98ab74499dd4cd0dc4dd03e0e0d0be82acb0213d1ec7ef2c79457`
-const myurl string = `https://api-staging.stackpoint.io/`
-
 func main() {
-    client := spio.NewClient(mytoken, myurl)
+    token := os.Getenv("CLUSTER_API_TOKEN")
+    endpoint := os.Getenv("SPC_BASE_API_URL")
+    client := spio.NewClient(token, endpoint)
 
     orgs, err := client.GetOrganizations()
     if err != nil { fmt.Printf("Error: %v\n", err); os.Exit(1) }
@@ -27,7 +26,7 @@ func main() {
 
     var orgid int
     fmt.Printf("Enter org ID to inspect: ")
-    _, err = fmt.Scanf("%d", &orgid)
+    fmt.Scanf("%d", &orgid)
 
     org, err := client.GetOrganization(orgid)
     if err != nil { fmt.Printf("Error: %v\n", err); os.Exit(1) }
