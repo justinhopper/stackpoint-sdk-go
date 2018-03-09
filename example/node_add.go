@@ -9,7 +9,8 @@ import (
 const orgid = 111
 
 func main() {
-    token := os.Getenv("CLUSTER_API_TOKEN")
+    // Set up HTTP client with API token and URL
+    token := os.Getenv("SPC_API_TOKEN")
     endpoint := os.Getenv("SPC_BASE_API_URL")
     client := spio.NewClient(token, endpoint)
 
@@ -28,16 +29,16 @@ func main() {
     fmt.Scanf("%d", &clusterid)
 
     // Get cluster provider from selection
-    var provider_name string
+    var provider string
     for i := 0; i < len(clusters); i++ {
         if clusters[i].PrimaryKey == clusterid {
-            provider_name = clusters[i].Provider
+            provider = clusters[i].Provider
             break;
         }
     }
 
     // Get machine types allowed for this provider
-    m_options, err := client.GetMachSpecs(provider_name)
+    m_options, err := client.GetMachSpecs(provider)
     if err != nil {
         fmt.Println(err)
         os.Exit(1)

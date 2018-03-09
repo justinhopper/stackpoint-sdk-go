@@ -7,9 +7,11 @@ import (
 )
 
 const orgid = 111
+const nodepool_name = "Test Nodepool"
 
 func main() {
-    token := os.Getenv("CLUSTER_API_TOKEN")
+    // Set up HTTP client with API token and URL
+    token := os.Getenv("SPC_API_TOKEN")
     endpoint := os.Getenv("SPC_BASE_API_URL")
     client := spio.NewClient(token, endpoint)
 
@@ -30,10 +32,10 @@ func main() {
     fmt.Scanf("%d", &clusterid)
 
     // Get cluster provider from selection
-    var provider_name string
+    var provider string
     for i := 0; i < len(clusters); i++ {
         if clusters[i].PrimaryKey == clusterid {
-            provider_name = clusters[i].Provider
+            provider = clusters[i].Provider
             break;
         }
     }
@@ -43,7 +45,7 @@ func main() {
     fmt.Printf("Enter number of worker nodes to add into pool: ")
     fmt.Scanf("%v", &node_count)
 
-    new_nodepool := spio.NodePool{Name: "Test NodePool",
+    new_nodepool := spio.NodePool{Name: nodepool_name,
                                   ClusterID: clusterid,
                                   NodeCount: node_count,
                                   Platform: "coreos",
@@ -51,12 +53,12 @@ func main() {
                                   Role: "worker" }
     if node_count > 0 {
         // Get machine types allowed for this provider
-        m_options, err := client.GetMachSpecs(provider_name)
+        m_options, err := client.GetMachSpecs(provider)
         if err != nil {
             fmt.Println(err)
             os.Exit(1)
         }
-        fmt.Printf("Node size options for provider %s:\n", provider_name)
+        fmt.Printf("Node size options for provider %s:\n", provider)
         for _, opt := range m_options {
             fmt.Println(opt)
         }

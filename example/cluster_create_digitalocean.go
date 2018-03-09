@@ -7,22 +7,27 @@ import (
 )
 
 const orgid = 111
-const ssh_keysetid = "" // ENTER YOUR SSH KEYSET ID
-const provider_name = "do"
-const do_keysetid = "" // ENTER YOUR DIGITAL OCEAN KEYSET ID
+const provider = "do"
+const cluster_name = "Test DigitalOcean Cluster"
 
 func main() {
-    token := os.Getenv("CLUSTER_API_TOKEN")
+    // Set up HTTP client with API token and URL
+    token := os.Getenv("SPC_API_TOKEN")
     endpoint := os.Getenv("SPC_BASE_API_URL")
     client := spio.NewClient(token, endpoint)
 
+    var ssh_keysetid int
+    fmt.Sscanf(os.Getenv("SPC_SSH_KEYSET"), "%d", &ssh_keysetid)
+    var do_keysetid int
+    fmt.Sscanf(os.Getenv("SPC_DO_KEYSET"), "%d", &do_keysetid)
+
     // Get list of machine types for provider
-    m_options, err := client.GetMachSpecs(provider_name)
+    m_options, err := client.GetMachSpecs(provider)
     if err != nil {
         fmt.Println(err)
         os.Exit(1)
     }
-    fmt.Printf("Node size options for provider %s:\n", provider_name)
+    fmt.Printf("Node size options for provider %s:\n", provider)
     for _, opt := range m_options {
         fmt.Println(opt)
     }
@@ -45,8 +50,8 @@ func main() {
     }
 
     new_solution := spio.Solution{Solution: "helm_tiller"}
-    new_cluster := spio.Cluster{Name: "Test DigitalOcean Cluster",
-                                Provider: "do",
+    new_cluster := spio.Cluster{Name: cluster_name,
+                                Provider: provider,
                                 ProviderKey: do_keysetid,
                                 MasterCount: 1,
                                 MasterSize: node_size,

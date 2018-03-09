@@ -3,20 +3,14 @@ package main
 import (
     "os"
     "fmt"
-    "encoding/json"
     spio "github.com/StackPointCloud/stackpoint-sdk-go/pkg/stackpointio"
 )
-
-// PrettyPrint to break down objects
-func PrettyPrint(v interface{}) {
-      b, _ := json.MarshalIndent(v, "", "  ")
-      println(string(b))
-}
 
 const orgid = 111
 
 func main() {
-    token := os.Getenv("CLUSTER_API_TOKEN")
+    // Set up HTTP client with API token and URL
+    token := os.Getenv("SPC_API_TOKEN")
     endpoint := os.Getenv("SPC_BASE_API_URL")
     client := spio.NewClient(token, endpoint)
 

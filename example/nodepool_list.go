@@ -16,7 +16,8 @@ func PrettyPrint(v interface{}) {
 const orgid = 111
 
 func main() {
-    token := os.Getenv("CLUSTER_API_TOKEN")
+    // Set up HTTP client with API token and URL
+    token := os.Getenv("SPC_API_TOKEN")
     endpoint := os.Getenv("SPC_BASE_API_URL")
     client := spio.NewClient(token, endpoint)
 
@@ -32,7 +33,7 @@ func main() {
 
     var clusterid int
     fmt.Printf("Enter cluster ID to list nodepools from: ")
-    _, err = fmt.Scanf("%d", &clusterid)
+    fmt.Scanf("%d", &clusterid)
 
     nps, err := client.GetNodePools(orgid, clusterid)
     if err != nil { fmt.Printf("Error: %v\n", err); os.Exit(1) }
@@ -46,7 +47,7 @@ func main() {
 
     var nodepoolid int
     fmt.Printf("Enter nodepool ID to inspect: ")
-    _, err = fmt.Scanf("%d", &nodepoolid)
+    fmt.Scanf("%d", &nodepoolid)
 
     nodepool, err := client.GetNodePool(orgid, clusterid, nodepoolid)
     if err != nil { fmt.Printf("Error: %v\n", err); os.Exit(1) }
