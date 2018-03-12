@@ -1,43 +1,32 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	spio "github.com/StackPointCloud/stackpoint-sdk-go/pkg/stackpointio"
-	"os"
+	"log"
 )
-
-// PrettyPrint to break down objects
-func PrettyPrint(v interface{}) {
-	b, _ := json.MarshalIndent(v, "", "  ")
-	println(string(b))
-}
 
 const orgid = 111
 
 func main() {
-	// Set up HTTP client with API token and URL
-	token := os.Getenv("SPC_API_TOKEN")
-	endpoint := os.Getenv("SPC_BASE_API_URL")
-	client := spio.NewClient(token, endpoint)
+        // Set up HTTP client with with environment variables for API token and URL
+        client, err := spio.NewClientFromEnv()
+        if err != nil { log.Fatal(err.Error()) }
 
-	keysets, err := client.GetKeysets(orgid)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		os.Exit(1)
-	}
-	for i := 0; i < len(keysets); i++ {
-		fmt.Printf("Keyset(%d): %v\n", keysets[i].PrimaryKey, keysets[i].Name)
-	}
+        // Gather list of keysets
+        keysets, err := client.GetKeysets(orgid)
+        if err != nil { log.Fatal(err.Error()) }
 
-	var keysetid int
-	fmt.Printf("Enter keyset ID to inspect: ")
-	fmt.Scanf("%d", &keysetid)
+        // List keysets configured
+        for i := 0; i < len(keysets); i++ {
+                fmt.Printf("Keysets(%d): %v\n", keysets[i].PrimaryKey, keysets[i].Name)
+        }
+        // Get keyset ID to inspect from user
+        var keysetid int
+        fmt.Printf("Enter keyset ID to delete: ")
+        fmt.Scanf("%d", &keysetid)
 
 	keyset, err := client.GetKeyset(orgid, keysetid)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		os.Exit(1)
-	}
-	PrettyPrint(keyset)
+        if err != nil { log.Fatal(err.Error()) }
+	spio.PrettyPrint(keyset)
 }

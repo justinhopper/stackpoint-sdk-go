@@ -1,41 +1,37 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	spio "github.com/StackPointCloud/stackpoint-sdk-go/pkg/stackpointio"
-	"os"
+	"log"
 )
 
-// PrettyPrint to break down objects
-func PrettyPrint(v interface{}) {
-	b, _ := json.MarshalIndent(v, "", "  ")
-	println(string(b))
-}
-
 func main() {
-	// Set up HTTP client with API token and URL
-	token := os.Getenv("SPC_API_TOKEN")
-	endpoint := os.Getenv("SPC_BASE_API_URL")
-	client := spio.NewClient(token, endpoint)
+        // Set up HTTP client with with environment variables for API token and URL
+        client, err := spio.NewClientFromEnv()
+        if err != nil { log.Fatal(err.Error()) }
 
-	orgs, err := client.GetOrganizations()
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		os.Exit(1)
-	}
-	for i := 0; i < len(orgs); i++ {
-		fmt.Printf("Org(%d): %v\n", orgs[i].PrimaryKey, orgs[i].Name)
-	}
+        // Get list of configured organizations
+        orgs, err := client.GetOrganizations()
+        if err != nil { log.Fatal(err.Error()) }
 
+        // Print list of organizations
+        for i := 0; i < len(orgs); i++ {
+                fmt.Printf("Org(%d): %v\n", orgs[i].PrimaryKey, orgs[i].Name)
+        }
+        if len(orgs) == 0 {
+            fmt.Println("Sorry, no organizations defined yet")
+            return
+        }
+	// Get organization ID from user to inspect
 	var orgid int
 	fmt.Printf("Enter org ID to inspect: ")
 	fmt.Scanf("%d", &orgid)
 
 	org, err := client.GetOrganization(orgid)
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		os.Exit(1)
+                spio.ViewResp()
+                log.Fatal(err)
 	}
-	PrettyPrint(org)
+	spio.PrettyPrint(org)
 }

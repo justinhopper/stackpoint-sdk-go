@@ -7,12 +7,6 @@ import (
         "log"
 )
 
-// PrettyPrint to break down objects
-func PrettyPrint(v interface{}) {
-	b, _ := json.MarshalIndent(v, "", "  ")
-	println(string(b))
-}
-
 const orgid = 111
 
 func main() {
@@ -33,12 +27,12 @@ func main() {
             return
         }
 
-        // Allow user to input cluster ID to inspect
+        // Get cluster ID from user to inspect
 	var clusterid int
 	fmt.Printf("Enter cluster ID to inspect: ")
 	fmt.Scanf("%d", &clusterid)
 
 	cluster, err := client.GetCluster(orgid, clusterid)
 	if err != nil { log.Fatal(err.Error()) }
-	PrettyPrint(cluster)
+	spio.PrettyPrint(cluster)
 }

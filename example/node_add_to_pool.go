@@ -3,101 +3,83 @@ package main
 import (
 	"fmt"
 	spio "github.com/StackPointCloud/stackpoint-sdk-go/pkg/stackpointio"
-	"os"
+	"log"
 )
 
 const orgid = 111
 
 func main() {
-	// Set up HTTP client with API token and URL
-	token := os.Getenv("SPC_API_TOKEN")
-	endpoint := os.Getenv("SPC_BASE_API_URL")
-	client := spio.NewClient(token, endpoint)
+        // Set up HTTP client with with environment variables for API token and URL
+        client, err := spio.NewClientFromEnv()
+        if err != nil { log.Fatal(err.Error()) }
 
-	// Get list of clusters to select from
-	clusters, err := client.GetClusters(orgid)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		os.Exit(1)
-	}
-	for i := 0; i < len(clusters); i++ {
-		fmt.Printf("Clusters(%d): %v\n", clusters[i].PrimaryKey, clusters[i].Name)
-	}
-	if len(clusters) == 0 {
-		fmt.Printf("Sorry, no clusters defined yet\n")
-		os.Exit(0)
-	}
-	var clusterid int
-	fmt.Printf("Enter cluster ID to add node to: ")
-	_, err = fmt.Scanf("%d", &clusterid)
+        // Get list of configured clusters
+        clusters, err := client.GetClusters(orgid)
+        if err != nil { log.Fatal(err.Error()) }
 
-	// Get cluster provider from selection
-	var provider_name string
-	for i := 0; i < len(clusters); i++ {
-		if clusters[i].PrimaryKey == clusterid {
-			provider_name = clusters[i].Provider
-			break
-		}
-	}
+        // Print list of clusters, saving map of providers for later use
+        providers := make(map[int]string)
+        for i := 0; i < len(clusters); i++ {
+                fmt.Printf("Cluster(%d): %v\n", clusters[i].PrimaryKey, clusters[i].Name)
+                providers[clusters[i].PrimaryKey] = clusters[i].Provider
+        }
+        if len(clusters) == 0 {
+            fmt.Println("Sorry, no clusters defined yet")
+            return
+        }
+        // Get cluster ID from user to add node to
+        var clusterid int
+        fmt.Printf("Enter cluster ID to add node to: ")
+        fmt.Scanf("%d", &clusterid)
 
-	// Get machine types allowed for this provider
-	m_options, err := client.GetMachSpecs(provider_name)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	for _, opt := range m_options {
-		fmt.Println(opt)
-	}
-	var node_size string
-	fmt.Printf("Enter node size: ")
-	fmt.Scanf("%s", &node_size)
+        // Get list of machine types for provider
+        mOptions, err := client.GetMachSpecs(providers[clusterid])
+        if err != nil { log.Fatal(err.Error()) }
 
-	// Validate machine type selection
-	found := false
-	for _, opt := range m_options {
-		if node_size == opt {
-			found = true
-			break
-		}
-	}
-	if found != true {
-		fmt.Printf("Invalid option: %s\n", node_size)
-		os.Exit(1)
-	}
+        // List machine types
+        fmt.Printf("Node size options for provider %s:\n", providers[clusterid])
+        for _, opt := range mOptions {
+                fmt.Println(opt)
+        }
+        // Get node size selection from user
+        var nodeSize string
+        fmt.Printf("Enter node size: ")
+        fmt.Scanf("%s", &nodeSize)
+
+        // Validate machine type selection
+        if !spio.StringInSlice(nodeSize, mOptions) { log.Fatalf("Invalid option: %s\n", nodeSize) }
 
 	// Get list of nodepools to select from
 	nps, err := client.GetNodePools(orgid, clusterid)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		os.Exit(1)
-	}
+	if err != nil { log.Fatal(err.Error()) }
+
+ 	// List nodepools
 	for i := 0; i < len(nps); i++ {
 		fmt.Printf("Nodepool(%d): %v (node count: %d)\n", nps[i].PrimaryKey, nps[i].Name, nps[i].NodeCount)
 	}
 	if len(nps) == 0 {
-		fmt.Printf("Sorry, no nodepools found\n")
-		os.Exit(0)
+		fmt.Println("Sorry, no nodepools found")
+		return
 	}
+	// Get nodepool ID from user
 	var nodepoolid int
 	fmt.Printf("Enter nodepool ID to add node to: ")
 	fmt.Scanf("%d", &nodepoolid)
 
-	// Get number of nodes to add
-	var node_count int
+	// Get number of nodes to add from user
+	var nodeCount int
 	fmt.Printf("Enter number of nodes to add: ")
-	fmt.Scanf("%d", &node_count)
+	fmt.Scanf("%d", &nodeCount)
 
-	new_node := spio.NodeAdd{Size: node_size,
-		Count:      node_count,
+	newNode := spio.NodeAdd{Size: nodeSize,
+		Count:      nodeCount,
 		Role:       "worker",
 		NodePoolID: nodepoolid}
 
-	_, err2 := client.AddNodesToNodePool(orgid, clusterid, nodepoolid, new_node)
+	_, err2 := client.AddNodesToNodePool(orgid, clusterid, nodepoolid, newNode)
 	if err2 != nil {
-		fmt.Printf("Error: %v\n", err2)
-		spio.ViewResp()
-		os.Exit(1)
+                spio.ViewResp()
+                log.Fatal(err2)
 	}
 	fmt.Printf("Node creation sent, building...\n")
 }
