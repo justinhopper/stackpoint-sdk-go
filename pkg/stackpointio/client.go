@@ -4,23 +4,22 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/golang/glog"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
-
-	"github.com/golang/glog"
 )
 
-var lastHttpResponse http.Response
+var lastHTTPResponse http.Response
 
 // ViewResp breaks down last HTTP call's response for debugging
 func ViewResp() {
-    fmt.Println("response Status:", lastHttpResponse.Status)
-    fmt.Println("response StatusCode:", lastHttpResponse.StatusCode)
-    fmt.Println("response Headers:", lastHttpResponse.Header)
-    body, _ := ioutil.ReadAll(lastHttpResponse.Body)
-    fmt.Println("response Body:", string(body))
+	fmt.Println("response Status:", lastHTTPResponse.Status)
+	fmt.Println("response StatusCode:", lastHTTPResponse.StatusCode)
+	fmt.Println("response Headers:", lastHTTPResponse.Header)
+	body, _ := ioutil.ReadAll(lastHTTPResponse.Body)
+	fmt.Println("response Body:", string(body))
 }
 
 // APIClient references an api token and an http endpoint
@@ -51,8 +50,8 @@ func (client *APIClient) runRequest(req *http.Request) ([]byte, error) {
 
 	resp, err := client.httpClient.Do(req)
 
-        // Store response in case it's needed later
-        lastHttpResponse = *resp
+	// Store response in case it's needed later
+	lastHTTPResponse = *resp
 
 	if err == nil && resp.StatusCode >= 400 {
 		err = fmt.Errorf("Status code %d", resp.StatusCode)
@@ -93,7 +92,7 @@ func (client *APIClient) post(path string, dataObject interface{}) ([]byte, erro
 	data, err := json.Marshal(dataObject)
 	if err != nil {
 		return nil, err
-        }
+	}
 	req, err := http.NewRequest("POST", client.endpoint+path, bytes.NewReader(data))
 	if err != nil {
 		return nil, err
@@ -166,45 +165,55 @@ func (client *APIClient) GetUserProfile(username string) (UserProfile, error) {
 }
 
 // GetKeysets gets list of keysets for Org ID
-func (c *APIClient) GetKeysets(orgid int) ([]Keyset, error) {
-    resp, err := c.get(fmt.Sprintf("/orgs/%d/keysets", orgid))
-    if err != nil { return nil, err }
-    keysets := []Keyset{}
-    err = json.Unmarshal(resp, &keysets)
-    return keysets, err
+func (client *APIClient) GetKeysets(orgid int) ([]Keyset, error) {
+	resp, err := c.get(fmt.Sprintf("/orgs/%d/keysets", orgid))
+	if err != nil {
+		return nil, err
+	}
+	keysets := []Keyset{}
+	err = json.Unmarshal(resp, &keysets)
+	return keysets, err
 }
 
 // GetKeyset returns keyset for Org ID and Keyset ID
-func (c *APIClient) GetKeyset(orgid, keysetid int) (Keyset, error) {
-    var keyset Keyset
-    resp, err := c.get(fmt.Sprintf("/orgs/%d/keysets/%d", orgid, keysetid))
-    if err != nil { return keyset, err }
-    err = json.Unmarshal(resp, &keyset)
-    return keyset, err
+func (client *APIClient) GetKeyset(orgid, keysetid int) (Keyset, error) {
+	var keyset Keyset
+	resp, err := c.get(fmt.Sprintf("/orgs/%d/keysets/%d", orgid, keysetid))
+	if err != nil {
+		return keyset, err
+	}
+	err = json.Unmarshal(resp, &keyset)
+	return keyset, err
 }
 
-// CreateKeyset creates keyset 
-func (c *APIClient) CreateKeyset(orgid int, d_obj interface{}) ([]byte, error) {
-    return c.post(fmt.Sprintf("/orgs/%d/keysets", orgid), d_obj)
+// CreateKeyset creates keyset
+func (client *APIClient) CreateKeyset(orgid int, dObj interface{}) ([]byte, error) {
+	return c.post(fmt.Sprintf("/orgs/%d/keysets", orgid), dObj)
 }
 
 // DeleteKeyset deletes keyset
-func (c *APIClient) DeleteKeyset(orgid, keysetid int) ([]byte, error) {
-    // Might return Error: 204 No Content, but Delete seems to happen fine
-    return c.delete(fmt.Sprintf("/orgs/%d/keysets/%d", orgid, keysetid))
+func (client *APIClient) DeleteKeyset(orgid, keysetid int) ([]byte, error) {
+	// Might return Error: 204 No Content, but Delete seems to happen fine
+	return c.delete(fmt.Sprintf("/orgs/%d/keysets/%d", orgid, keysetid))
 }
 
 // GetMachSpecs returns list of machine types for cloud provider type
-func (c *APIClient) GetMachSpecs(prov string) ([]string, error) {
-    url := fmt.Sprintf("https://stackpointcloud-196003.appspot.com/specs/%s/", prov)
-    req, err := http.NewRequest("GET", url, nil)
-    if err != nil { return nil, err }
-    content, err := c.runRequest(req)
-    if err != nil { return nil, err }
-    var specs ProviderSpecs
-    err = json.Unmarshal(content, &specs)
-    if err != nil { return nil, err }
-    return specs.Machines, err
+func (client *APIClient) GetMachSpecs(prov string) ([]string, error) {
+	url := fmt.Sprintf("https://stackpointcloud-196003.appspot.com/specs/%s/", prov)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	content, err := c.runRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	var specs ProviderSpecs
+	err = json.Unmarshal(content, &specs)
+	if err != nil {
+		return nil, err
+	}
+	return specs.Machines, err
 }
 
 // GetClusters gets all clusters associated with an organization
@@ -256,9 +265,9 @@ func (client *APIClient) CreateCluster(organizationID int, cluster Cluster) (Clu
 }
 
 // DeleteCluster deletes cluster
-func (c *APIClient) DeleteCluster(orgid, clusterid int) ([]byte, error) {
-    // Might return Error: 204 No Content, but Delete seems to happen fine
-    return c.delete(fmt.Sprintf("/orgs/%d/clusters/%d", orgid, clusterid))
+func (client *APIClient) DeleteCluster(orgid, clusterid int) ([]byte, error) {
+	// Might return Error: 204 No Content, but Delete seems to happen fine
+	return c.delete(fmt.Sprintf("/orgs/%d/clusters/%d", orgid, clusterid))
 }
 
 // GetNodes gets the nodes associated with a cluster and organization
@@ -406,9 +415,9 @@ func (client *APIClient) CreateNodePool(organizationID, clusterID int, pool Node
 }
 
 // DeleteNodePool deletes nodepool
-func (c *APIClient) DeleteNodePool(orgid, clusterid, nodepoolid int) ([]byte, error) {
-    // Might return Error: 204 No Content, but Delete seems to happen fine
-    return c.delete(fmt.Sprintf("/orgs/%d/clusters/%d/nodepools/%d", orgid, clusterid, nodepoolid))
+func (client *APIClient) DeleteNodePool(orgid, clusterid, nodepoolid int) ([]byte, error) {
+	// Might return Error: 204 No Content, but Delete seems to happen fine
+	return c.delete(fmt.Sprintf("/orgs/%d/clusters/%d/nodepools/%d", orgid, clusterid, nodepoolid))
 }
 
 // sets the cpu and memory of a pool if they are not configured already,

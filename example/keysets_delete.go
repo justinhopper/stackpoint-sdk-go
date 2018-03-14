@@ -9,13 +9,17 @@ import (
 const orgid = 111
 
 func main() {
-        // Set up HTTP client with with environment variables for API token and URL
-        client, err := spio.NewClientFromEnv()
-        if err != nil { log.Fatal(err.Error()) }
+	// Set up HTTP client with with environment variables for API token and URL
+	client, err := spio.NewClientFromEnv()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
-        // Gather list of keysets
+	// Gather list of keysets
 	keysets, err := client.GetKeysets(orgid)
-	if err != nil { log.Fatal(err.Error()) }
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
 	// List keysets configured
 	for i := 0; i < len(keysets); i++ {
@@ -26,11 +30,11 @@ func main() {
 	fmt.Printf("Enter keyset ID to delete: ")
 	fmt.Scanf("%d", &keysetid)
 
-        // Do keyset ID deletion
+	// Do keyset ID deletion
 	_, err2 := client.DeleteKeyset(orgid, keysetid)
-        if err2 != nil {
-                spio.ViewResp()
-                log.Fatal(err2)
-        }
+	if err2 != nil {
+		spio.ViewResp()
+		log.Fatal(err2)
+	}
 	fmt.Printf("Keyset should delete shortly\n")
 }

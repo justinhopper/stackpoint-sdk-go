@@ -9,32 +9,36 @@ import (
 const orgid = 111
 
 func main() {
-        // Set up HTTP client with with environment variables for API token and URL
-        client, err := spio.NewClientFromEnv()
-        if err != nil { log.Fatal(err.Error()) }
+	// Set up HTTP client with with environment variables for API token and URL
+	client, err := spio.NewClientFromEnv()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
-        // Get list of configured clusters
-        clusters, err := client.GetClusters(orgid)
-        if err != nil { log.Fatal(err.Error()) }
+	// Get list of configured clusters
+	clusters, err := client.GetClusters(orgid)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
-        // Print list of clusters, saving map of providers for later use
-        providers := make(map[int]string)
-        for i := 0; i < len(clusters); i++ {
-                fmt.Printf("Cluster(%d): %v\n", clusters[i].PrimaryKey, clusters[i].Name)
-                providers[clusters[i].PrimaryKey] = clusters[i].Provider
-        }
-        if len(clusters) == 0 {
-            fmt.Println("Sorry, no clusters defined yet")
-            return
-        }
-        // Get cluster ID from user to add node to
-        var clusterid int
-        fmt.Printf("Enter cluster ID to add node to: ")
-        fmt.Scanf("%d", &clusterid)
+	// Print list of clusters
+	for i := 0; i < len(clusters); i++ {
+		fmt.Printf("Cluster(%d): %v\n", clusters[i].PrimaryKey, clusters[i].Name)
+	}
+	if len(clusters) == 0 {
+		fmt.Println("Sorry, no clusters defined yet")
+		return
+	}
+	// Get cluster ID from user to delete node from
+	var clusterid int
+	fmt.Printf("Enter cluster ID to delete node from: ")
+	fmt.Scanf("%d", &clusterid)
 
- 	// Get list of nodes configured
+	// Get list of nodes configured
 	nodes, err := client.GetNodes(orgid, clusterid)
-	if err != nil { log.Fatal(err.Error()) }
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
 	// List nodes
 	for i := 0; i < len(nodes); i++ {
@@ -46,13 +50,13 @@ func main() {
 	}
 	// Get node ID to delete from user
 	var nodeid int
-	fmt.Printf("Enter node ID to inspect: ")
+	fmt.Printf("Enter node ID to delete: ")
 	fmt.Scanf("%d", &nodeid)
 
 	_, err2 := client.DeleteNode(orgid, clusterid, nodeid)
-        if err2 != nil {
-                spio.ViewResp()
-                log.Fatal(err2)
-        }
-	fmt.Printf("Node should delete shortly\n")
+	if err2 != nil {
+		spio.ViewResp()
+		log.Fatal(err2)
+	}
+	fmt.Println("Node should delete shortly")
 }

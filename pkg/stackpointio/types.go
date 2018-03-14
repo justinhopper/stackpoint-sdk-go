@@ -20,9 +20,9 @@ type User struct {
 
 // Provider struct for machine types call
 type ProviderSpecs struct {
-    Name     string   `json:"Name"`
-    Label    string   `json:"Label"`
-    Machines []string `json:"Machines"`
+	Name     string   `json:"Name"`
+	Label    string   `json:"Label"`
+	Machines []string `json:"Machines"`
 }
 
 // Key struct
@@ -30,25 +30,25 @@ type ProviderSpecs struct {
 // Solution Type: sysdig{token},turbonomic{url,username,password,scope}
 // SSH Type: pub
 type Key struct {
-    PrimaryKey  int    `json:"pk"`
-    Type        string `json:"key_type"`
-    Value       string `json:"key"`
-    Fingerprint string `json:"fingerprint"`
-    User        int    `json:"user"`
+	PrimaryKey  int    `json:"pk"`
+	Type        string `json:"key_type"`
+	Value       string `json:"key"`
+	Fingerprint string `json:"fingerprint"`
+	User        int    `json:"user"`
 }
 
 // Keyset struct
 type Keyset struct {
-    Name       string `json:"name"`
-    PrimaryKey int    `json:"pk"`
-    Category   string `json:"category"` // provider, solution, user_ssh
-    Entity     string `json:"entity"` // provider{aws,azure,do,gce,gke},solution{sysdig,turbonomic}
-    Org        int    `json:"org"`
-    Workspaces []int  `json:"workspaces"`
-    User       int    `json:"user"`
-    IsDefault  bool   `json:"is_default"`
-    Keys       []Key  `json:"keys"`
-    Created    string `json:"created"`
+	Name       string `json:"name"`
+	PrimaryKey int    `json:"pk"`
+	Category   string `json:"category"` // provider, solution, user_ssh
+	Entity     string `json:"entity"`   // provider{aws,azure,do,gce,gke},solution{sysdig,turbonomic}
+	Org        int    `json:"org"`
+	Workspaces []int  `json:"workspaces"`
+	User       int    `json:"user"`
+	IsDefault  bool   `json:"is_default"`
+	Keys       []Key  `json:"keys"`
+	Created    string `json:"created"`
 }
 
 // UserProfile includes detailed information about a StackPointCloud user
@@ -65,7 +65,7 @@ type Solution struct {
 	PrimaryKey int    `json:"pk"`
 	Solution   string `json:"solution"`
 	Keyset     int    `json:"keyset,omitempty"` // only for turbonomic and sysdig
-        MaxNodes   int    `json:"max_nodes"` // only for autoscaler
+	MaxNodes   int    `json:"max_nodes"`        // only for autoscaler
 }
 
 // Cluster describes a Kubernetes cluster in the StackPointCloud system
@@ -104,7 +104,7 @@ type Cluster struct {
 	Platform           string     `json:"platform"`
 	Image              string     `json:"image"`
 	Channel            string     `json:"channel"`
-        SSHKeySet          int        `json:"user_ssh_keyset"`
+	SSHKeySet          int        `json:"user_ssh_keyset"`
 	Solutions          []Solution `json:"solutions"`
 }
 

@@ -11,32 +11,42 @@ const provider = "gce"
 const clusterName = "Test GCE Cluster"
 
 func main() {
-        // Set up HTTP client with with environment variables for API token and URL
-        client, err := spio.NewClientFromEnv()
-        if err != nil { log.Fatal(err.Error()) }
+	// Set up HTTP client with with environment variables for API token and URL
+	client, err := spio.NewClientFromEnv()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
-        sshKeysetid, err := spio.GetIDFromEnv("SPC_SSH_KEYSET")
-        if err != nil { log.Fatal(err.Error()) }
+	sshKeysetid, err := spio.GetIDFromEnv("SPC_SSH_KEYSET")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
-        gceKeysetid, err := spio.GetIDFromEnv("SPC_GCE_KEYSET")
-        if err != nil { log.Fatal(err.Error()) }
+	gceKeysetid, err := spio.GetIDFromEnv("SPC_GCE_KEYSET")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
-        // Get list of machine types for provider
-        mOptions, err := client.GetMachSpecs(provider)
-        if err != nil { log.Fatal(err.Error()) }
+	// Get list of machine types for provider
+	mOptions, err := client.GetMachSpecs(provider)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
-        // List machine types
-        fmt.Printf("Node size options for provider %s:\n", provider)
-        for _, opt := range mOptions {
-                fmt.Println(opt)
-        }
-        // Get node size selection from user
-        var nodeSize string
-        fmt.Printf("Enter node size: ")
-        fmt.Scanf("%s", &nodeSize)
+	// List machine types
+	fmt.Printf("Node size options for provider %s:\n", provider)
+	for _, opt := range mOptions {
+		fmt.Println(opt)
+	}
+	// Get node size selection from user
+	var nodeSize string
+	fmt.Printf("Enter node size: ")
+	fmt.Scanf("%s", &nodeSize)
 
-        // Validate machine type selection
-        if !spio.StringInSlice(nodeSize, mOptions) { log.Fatalf("Invalid option: %s\n", nodeSize) }
+	// Validate machine type selection
+	if !spio.StringInSlice(nodeSize, mOptions) {
+		log.Fatalf("Invalid option: %s\n", nodeSize)
+	}
 
 	newSolution := spio.Solution{Solution: "helm_tiller"}
 	newCluster := spio.Cluster{Name: clusterName,
@@ -59,9 +69,8 @@ func main() {
 
 	_, err2 := client.CreateCluster(orgid, newCluster)
 	if err2 != nil {
-                spio.ViewResp()
-                log.Fatal(err2)
-        }
+		spio.ViewResp()
+		log.Fatal(err2)
+	}
 	fmt.Printf("Cluster created, building...\n")
-
 }
