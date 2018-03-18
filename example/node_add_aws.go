@@ -67,9 +67,9 @@ func main() {
 
 	// Set up new node based on role
 	newNode := spio.NodeAdd{
-		Zone: awsZone,
-                ProviderSubnetID:   awsSubnetID,
-                ProviderSubnetCidr: awsSubnetCidr }
+		Zone:               awsZone,
+		ProviderSubnetID:   awsSubnetID,
+		ProviderSubnetCidr: awsSubnetCidr}
 	if nodeRole == "master" {
 		newNode.Count = 1
 		newNode.Role = "master"

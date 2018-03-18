@@ -9,12 +9,12 @@ import (
 const orgid = 111
 const provider = "aws"
 const clusterName = "Test AWS Cluster"
-const awsRegion = ""
-const awsZone = ""
-const awsNetworkID = ""
-const awsNetworkCidr = ""
-const awsSubnetID = ""
-const awsSubnetCidr = ""
+const awsRegion = "us-west-2"
+const awsZone = "us-west-2a"
+const awsNetworkID = "__new__"
+const awsNetworkCidr = "172.23.0.0/16"
+const awsSubnetID = "__new__"
+const awsSubnetCidr = "172.23.5.0/24"
 
 func main() {
 	// Set up HTTP client with with environment variables for API token and URL
