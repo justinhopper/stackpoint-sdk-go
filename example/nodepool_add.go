@@ -42,7 +42,7 @@ func main() {
 	fmt.Printf("Enter number of worker nodes to add into pool: ")
 	fmt.Scanf("%v", &nodeCount)
 
-	if nodeCount > 0 {
+	if nodeCount < 1 {
 		log.Fatal("You must add at least one node to the new nodepool")
 	}
 
@@ -72,10 +72,10 @@ func main() {
 	newNodepool.Size = nodeSize
 
 	// Create new nodepool
-	_, err2 := client.CreateNodePool(orgid, clusterid, newNodepool)
-	if err2 != nil {
+	pool, err := client.CreateNodePool(orgid, clusterid, newNodepool)
+	if err != nil {
 		spio.ViewResp()
-		log.Fatal(err2)
+		log.Fatal(err)
 	}
-	fmt.Println("NodePool creation sent, building...")
+	fmt.Printf("NodePool creation sent (ID: %d), building...\n", pool.PrimaryKey)
 }

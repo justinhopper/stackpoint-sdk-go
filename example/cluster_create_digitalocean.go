@@ -69,10 +69,10 @@ func main() {
 		SSHKeySet:         sshKeysetid,
 		Solutions:         []spio.Solution{newSolution}}
 
-	_, err2 := client.CreateCluster(orgid, newCluster)
-	if err2 != nil {
+	cluster, err := client.CreateCluster(orgid, newCluster)
+	if err != nil {
 		spio.ViewResp()
-		log.Fatal(err2)
+		log.Fatal(err)
 	}
-	fmt.Printf("Cluster created, building...\n")
+	fmt.Printf("Cluster created (ID: %d) (instance name: %s), building...\n", cluster.PrimaryKey, cluster.InstanceID)
 }

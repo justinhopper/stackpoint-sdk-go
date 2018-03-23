@@ -3,14 +3,12 @@ package stackpointio
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/golang/glog"
 	"io/ioutil"
 	"net/http"
-	"strconv"
-	"strings"
-	"errors"
 	"os"
+	"strings"
 )
 
 var lastHTTPResponse http.Response
@@ -47,17 +45,18 @@ func NewClient(token, endpoint string, client ...*http.Client) *APIClient {
 
 // NewClientFromEnv creates a new client from environment variables
 func NewClientFromEnv() (*APIClient, error) {
-        token := os.Getenv("SPC_API_TOKEN")
-        if token == "" {
-                return nil, errors.New("Missing token env in SPC_API_TOKEN")
-        }
-        endpoint := os.Getenv("SPC_BASE_API_URL")
-        if endpoint == "" {
-                return nil, errors.New("Missing endpoint env in SPC_BASE_API_URL")
-        }
-        return NewClient(token, endpoint), nil
+	token := os.Getenv("SPC_API_TOKEN")
+	if token == "" {
+		return nil, errors.New("Missing token env in SPC_API_TOKEN")
+	}
+	endpoint := os.Getenv("SPC_BASE_API_URL")
+	if endpoint == "" {
+		return nil, errors.New("Missing endpoint env in SPC_BASE_API_URL")
+	}
+	return NewClient(token, endpoint), nil
 }
 
+// runRequest performs the actual HTTP request, returns bytes of body response
 func (client *APIClient) runRequest(req *http.Request) ([]byte, error) {
 	req.Header.Set("Authorization", "Bearer "+client.token)
 	req.Header.Set("User-Agent", "Stackpoint Go SDK")
@@ -79,6 +78,7 @@ func (client *APIClient) runRequest(req *http.Request) ([]byte, error) {
 	return ioutil.ReadAll(resp.Body)
 }
 
+// get sets up the GET request for runRequest to perform, returns bytes of body response
 func (client *APIClient) get(path string) ([]byte, error) {
 	req, err := http.NewRequest("GET", client.endpoint+path, nil)
 	if err != nil {
@@ -91,6 +91,7 @@ func (client *APIClient) get(path string) ([]byte, error) {
 	return content, nil
 }
 
+// delete sets up the DELETE request for runRequest to perform, returns bytes of body response (empty on success)
 func (client *APIClient) delete(path string) ([]byte, error) {
 	req, err := http.NewRequest("DELETE", client.endpoint+path, nil)
 	if err != nil {
@@ -103,6 +104,7 @@ func (client *APIClient) delete(path string) ([]byte, error) {
 	return content, nil
 }
 
+// post sets up the POST request for runRequest to perform, returns bytes of body response
 func (client *APIClient) post(path string, dataObject interface{}) ([]byte, error) {
 	data, err := json.Marshal(dataObject)
 	if err != nil {
@@ -154,7 +156,6 @@ func (client *APIClient) GetUser() (User, error) {
 	if err != nil {
 		return User{}, err
 	}
-	glog.V(8).Info(string(content))
 	var user User
 	err = json.Unmarshal(content, &user)
 	if err != nil {
@@ -170,7 +171,6 @@ func (client *APIClient) GetUserProfile(username string) (UserProfile, error) {
 	if err != nil {
 		return UserProfile{}, err
 	}
-	glog.V(8).Info(string(content))
 	var profile UserProfile
 	err = json.Unmarshal(content, &profile)
 	if err != nil {
@@ -208,12 +208,12 @@ func (client *APIClient) CreateKeyset(orgid int, dObj interface{}) ([]byte, erro
 
 // DeleteKeyset deletes keyset
 func (client *APIClient) DeleteKeyset(orgid, keysetid int) ([]byte, error) {
-	// Might return Error: 204 No Content, but Delete seems to happen fine
 	return client.delete(fmt.Sprintf("/orgs/%d/keysets/%d", orgid, keysetid))
 }
 
 // GetMachSpecs returns list of machine types for cloud provider type
 func (client *APIClient) GetMachSpecs(prov string) ([]string, error) {
+	// TODO: this should be later replaced with a call to the API
 	url := fmt.Sprintf("https://stackpointcloud-196003.appspot.com/specs/%s/", prov)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -231,14 +231,13 @@ func (client *APIClient) GetMachSpecs(prov string) ([]string, error) {
 	return specs.Machines, err
 }
 
-// GetClusters gets all clusters associated with an organization
+// GetClusters gets all clusters associated with an organization, returns list of Cluster objects
 func (client *APIClient) GetClusters(organizationID int) ([]Cluster, error) {
 	path := fmt.Sprintf("/orgs/%d/clusters", organizationID)
 	content, err := client.get(path)
 	if err != nil {
 		return nil, err
 	}
-	glog.V(8).Info(string(content))
 	var clusters []Cluster
 	err = json.Unmarshal(content, &clusters)
 	if err != nil {
@@ -247,14 +246,13 @@ func (client *APIClient) GetClusters(organizationID int) ([]Cluster, error) {
 	return clusters, nil
 }
 
-// GetCluster gets a single cluster by primary ID and organization
+// GetCluster gets a single cluster by primary ID and organization, returns Cluster object
 func (client *APIClient) GetCluster(organizationID, clusterID int) (Cluster, error) {
 	path := fmt.Sprintf("/orgs/%d/clusters/%d", organizationID, clusterID)
 	content, err := client.get(path)
 	if err != nil {
 		return Cluster{}, err
 	}
-	glog.V(8).Info(string(content))
 	var cluster Cluster
 	err = json.Unmarshal(content, &cluster)
 	if err != nil {
@@ -263,14 +261,13 @@ func (client *APIClient) GetCluster(organizationID, clusterID int) (Cluster, err
 	return cluster, nil
 }
 
-// CreateCluster requests cluster creation, returns immediately
+// CreateCluster requests cluster creation, returns Cluster object of newly created cluster
 func (client *APIClient) CreateCluster(organizationID int, cluster Cluster) (Cluster, error) {
 	path := fmt.Sprintf("/orgs/%d/clusters", organizationID)
 	content, err := client.post(path, cluster)
 	if err != nil {
 		return Cluster{}, err
 	}
-	glog.V(8).Info(string(content))
 	var newCluster Cluster
 	err = json.Unmarshal(content, &newCluster)
 	if err != nil {
@@ -279,20 +276,18 @@ func (client *APIClient) CreateCluster(organizationID int, cluster Cluster) (Clu
 	return newCluster, nil
 }
 
-// DeleteCluster deletes cluster
+// DeleteCluster deletes cluster, should return nothing on success
 func (client *APIClient) DeleteCluster(orgid, clusterid int) ([]byte, error) {
-	// Might return Error: 204 No Content, but Delete seems to happen fine
 	return client.delete(fmt.Sprintf("/orgs/%d/clusters/%d", orgid, clusterid))
 }
 
-// GetNodes gets the nodes associated with a cluster and organization
+// GetNodes gets the nodes associated with a cluster and organization, returns list of Node objects
 func (client *APIClient) GetNodes(organizationID, clusterID int) ([]Node, error) {
 	path := fmt.Sprintf("/orgs/%d/clusters/%d/nodes", organizationID, clusterID)
 	content, err := client.get(path)
 	if err != nil {
 		return nil, err
 	}
-	glog.V(8).Info(string(content))
 	var nodes []Node
 	err = json.Unmarshal(content, &nodes)
 	if err != nil {
@@ -301,14 +296,13 @@ func (client *APIClient) GetNodes(organizationID, clusterID int) ([]Node, error)
 	return nodes, nil
 }
 
-// GetNode retrieves data for a single node
+// GetNode retrieves data for a single node, returns Node object
 func (client *APIClient) GetNode(organizationID, clusterID, nodeID int) (Node, error) {
 	path := fmt.Sprintf("/orgs/%d/clusters/%d/nodes/%d", organizationID, clusterID, nodeID)
 	content, err := client.get(path)
 	if err != nil {
 		return Node{}, err
 	}
-	glog.V(8).Info(string(content))
 	var node Node
 	err = json.Unmarshal(content, &node)
 	if err != nil {
@@ -324,132 +318,105 @@ func (client *APIClient) DeleteNode(organizationID, clusterID, nodeID int) ([]by
 	return content, err
 }
 
-// AddNodes sends a request to add master nodes to a cluster
+// AddNodes sends a request to add master nodes to a cluster, returns list of Node objects created
 func (client *APIClient) AddNodes(organizationID, clusterID int, nodeAdd NodeAdd) ([]Node, error) {
+	var newNodes []Node
 	invalid := Validate(nodeAdd)
 	if invalid != nil {
-		return []Node{}, invalid
+		return newNodes, invalid
 	}
 	path := fmt.Sprintf("/orgs/%d/clusters/%d/add_node", organizationID, clusterID)
 	content, err := client.post(path, nodeAdd)
 	if err != nil {
-		return []Node{}, err
+		return newNodes, err
 	}
-	glog.V(8).Info("add node response: " + string(content))
-	var response []Node
-	err = json.Unmarshal(content, &response)
+	err = json.Unmarshal(content, &newNodes)
 	if err != nil {
-		return []Node{}, err
+		return newNodes, err
 	}
-	return response, nil
+	return newNodes, nil
 }
 
-// AddNodesToNodePool sends a request to add worker nodes to a nodepool
+// AddNodesToNodePool sends a request to add worker nodes to a nodepool, returns list of Node objects created
 func (client *APIClient) AddNodesToNodePool(organizationID, clusterID, nodepoolID int, nodeAdd NodeAddToPool) ([]Node, error) {
-	var respNode []Node
-	//invalid := Validate(nodeAdd)
-	//if invalid != nil {
-		//return respNode, invalid
-	//}
+	var newNodes []Node
+	invalid := Validate(nodeAdd)
+	if invalid != nil {
+		return newNodes, invalid
+	}
 	path := fmt.Sprintf("/orgs/%d/clusters/%d/nodepools/%d/add", organizationID, clusterID, nodepoolID)
 	content, err := client.post(path, nodeAdd)
 	if err != nil {
-		return respNode, err
+		return newNodes, err
 	}
-	glog.V(8).Info("add node response: " + string(content))
-	err = json.Unmarshal(content, &respNode)
+	err = json.Unmarshal(content, &newNodes)
 	if err != nil {
-		return respNode, err
+		return newNodes, err
 	}
-	return respNode, nil
+	return newNodes, nil
 }
 
-// GetNodePools gets the NodePools for a cluster
+// GetNodePools gets the NodePools for a cluster, returns list of NodePool objects
 func (client *APIClient) GetNodePools(organizationID, clusterID int) ([]NodePool, error) {
 	path := fmt.Sprintf("/orgs/%d/clusters/%d/nodepools", organizationID, clusterID)
 	content, err := client.get(path)
 	if err != nil {
 		return nil, err
 	}
-	glog.V(8).Info(string(content))
 	var pools []NodePool
 	err = json.Unmarshal(content, &pools)
 	if err != nil {
 		return nil, err
 	}
-	for i, pool := range pools {
-		pools[i] = setNodePoolSpecs(pool)
-	}
 	return pools, nil
 }
 
-// GetNodePool gets a NodePool for a cluster
+// GetNodePool gets a NodePool for a cluster, returns NodePool object
 func (client *APIClient) GetNodePool(organizationID, clusterID, nodepoolID int) (NodePool, error) {
 	path := fmt.Sprintf("/orgs/%d/clusters/%d/nodepools/%d", organizationID, clusterID, nodepoolID)
 	content, err := client.get(path)
 	if err != nil {
 		return NodePool{}, err
 	}
-	glog.V(8).Info(string(content))
 	var pool NodePool
 	err = json.Unmarshal(content, &pool)
 	if err != nil {
 		return NodePool{}, err
 	}
-	return setNodePoolSpecs(pool), nil
+	return pool, nil
 }
 
-// CreateNodePool gets a NodePool for a cluster
+// CreateNodePool creates a new nodepool for a cluster, returns NodePool object
 func (client *APIClient) CreateNodePool(organizationID, clusterID int, pool NodePool) (NodePool, error) {
+	var newNodePool NodePool
 	invalid := Validate(pool)
 	if invalid != nil {
-		return NodePool{}, invalid
+		return newNodePool, invalid
 	}
 	path := fmt.Sprintf("/orgs/%d/clusters/%d/nodepools", organizationID, clusterID)
 	content, err := client.post(path, pool)
 	if err != nil {
-		return NodePool{}, err
+		return newNodePool, err
 	}
-	glog.V(8).Info(string(content))
-	var created NodePool
-	err = json.Unmarshal(content, &created)
+	err = json.Unmarshal(content, &newNodePool)
 	if err != nil {
-		return NodePool{}, err
+		return newNodePool, err
 	}
-	return created, nil
+	return newNodePool, nil
 }
 
-// DeleteNodePool deletes nodepool
+// DeleteNodePool deletes nodepool, returns nothing on success
 func (client *APIClient) DeleteNodePool(orgid, clusterid, nodepoolid int) ([]byte, error) {
 	return client.delete(fmt.Sprintf("/orgs/%d/clusters/%d/nodepools/%d", orgid, clusterid, nodepoolid))
 }
 
-// sets the cpu and memory of a pool if they are not configured already,
-// based on the type ("size")
-func setNodePoolSpecs(pool NodePool) NodePool {
-	if pool.CPU == "" {
-		cpu := getMachineTypeCPU(pool.Size)
-		if cpu != 0 {
-			pool.CPU = strconv.Itoa(cpu)
-		}
-	}
-	if pool.Memory == "" {
-		memory := getMachineTypeMemory(pool.Size)
-		if memory != 0 {
-			pool.Memory = strconv.Itoa(memory)
-		}
-	}
-	return pool
-}
-
-// GetVolumes gets the Persistent Volumes attached to a cluster
+// GetVolumes gets the Persistent Volumes attached to a cluster (NOT TESTED!!)
 func (client *APIClient) GetVolumes(organizationID, clusterID int) ([]PersistentVolume, error) {
 	path := fmt.Sprintf("/orgs/%d/clusters/%d/volumes", organizationID, clusterID)
 	content, err := client.get(path)
 	if err != nil {
 		return nil, err
 	}
-	glog.V(8).Info(string(content))
 	var volumes []PersistentVolume
 	err = json.Unmarshal(content, &volumes)
 	if err != nil {
@@ -458,14 +425,13 @@ func (client *APIClient) GetVolumes(organizationID, clusterID int) ([]Persistent
 	return volumes, nil
 }
 
-// GetLogs gets the BuildEventLogs for a cluster
+// GetLogs gets the BuildEventLogs for a cluster (NOT TESTED!!)
 func (client *APIClient) GetLogs(organizationID, clusterID int) ([]BuildLogEntry, error) {
 	path := fmt.Sprintf("/orgs/%d/clusters/%d/logs", organizationID, clusterID)
 	content, err := client.get(path)
 	if err != nil {
 		return nil, err
 	}
-	glog.V(8).Info(string(content))
 	var logs []BuildLogEntry
 	err = json.Unmarshal(content, &logs)
 	if err != nil {
@@ -474,20 +440,17 @@ func (client *APIClient) GetLogs(organizationID, clusterID int) ([]BuildLogEntry
 	return logs, nil
 }
 
-// PostBuildLog adds a build log to the cluster
+// PostBuildLog adds a build log to the cluster (NOT TESTED!!)
 func (client *APIClient) PostBuildLog(organizationID, clusterID int, log BuildLogEntry) (BuildLogEntry, error) {
 	invalid := Validate(log)
 	if invalid != nil {
 		return BuildLogEntry{}, invalid
 	}
 	path := fmt.Sprintf("/orgs/%d/clusters/%d/buildlogs", organizationID, clusterID)
-	// data, _ := json.Marshal(log)
-	// glog.V(8).Infof("PostBuildLog received %s", data)
 	content, err := client.post(path, log)
 	if err != nil {
 		return BuildLogEntry{}, err
 	}
-	glog.V(8).Infof("PostBuildLog response %s", string(content))
 	var responseLog BuildLogEntry
 	err = json.Unmarshal(content, &responseLog)
 	if err != nil {
@@ -496,7 +459,7 @@ func (client *APIClient) PostBuildLog(organizationID, clusterID int, log BuildLo
 	return responseLog, nil
 }
 
-// PostAlert adds a alert message to the cluster as a build log
+// PostAlert adds a alert message to the cluster as a build log (NOT TESTED!!)
 func (client *APIClient) PostAlert(organizationID, clusterID int, message, details, reference string) (BuildLogEntry, error) {
 	alert := BuildLogEntry{
 		ClusterID:     clusterID,

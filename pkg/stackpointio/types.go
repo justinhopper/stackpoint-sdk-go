@@ -38,8 +38,8 @@ type Key struct {
 type Keyset struct {
 	Name       string `json:"name"`
 	PrimaryKey int    `json:"pk"`
-	Category   string `json:"category"` // provider, solution, user_ssh
-	Entity     string `json:"entity"`   // provider{aws,azure,do,gce,gke},solution{sysdig,turbonomic}
+	Category   string `json:"category"`
+	Entity     string `json:"entity"`
 	Org        int    `json:"org"`
 	Workspaces []int  `json:"workspaces"`
 	User       int    `json:"user"`
@@ -106,21 +106,23 @@ type Cluster struct {
 
 // Node describes a node in a cluster.  The string field Size is provider-specific
 type Node struct {
-	PrimaryKey int       `json:"pk"`
-	Name       string    `json:"name"`
-	ClusterID  int       `json:"cluster"`
-	InstanceID string    `json:"instance_id"`
-	Role       string    `json:"role"`
-	Group      string    `json:"group_name,omitempty"`
-	PrivateIP  string    `json:"private_ip"`
-	PublicIP   string    `json:"public_ip"`
-	Platform   string    `json:"platform"`
-	Image      string    `json:"image"`
-	Location   string    `json:"location"`
-	Size       string    `json:"size"`
-	State      string    `json:"state"` // draft, building, provisioned, running, deleting, deleted
-	Created    time.Time `json:"created"`
-	Updated    time.Time `json:"updated,omitempty"`
+	PrimaryKey   int       `json:"pk"`
+	Name         string    `json:"name,omitempty"`
+	ClusterID    int       `json:"cluster"`
+	InstanceID   string    `json:"instance_id"`
+	NodePoolID   int    `json:"pool,omitempty"`
+	NodePoolName string    `json:"pool_name,omitempty"`
+	Role         string    `json:"role"`
+	Group        string    `json:"group_name,omitempty"`
+	PrivateIP    string    `json:"private_ip"`
+	PublicIP     string    `json:"public_ip"`
+	Platform     string    `json:"platform"`
+	Image        string    `json:"image"`
+	Location     string    `json:"location"`
+	Size         string    `json:"size"`
+	State        string    `json:"state"`
+	Created      time.Time `json:"created"`
+	Updated      time.Time `json:"updated,omitempty"`
 }
 
 // NodePool defines the characteristics of a grouping of nodes
@@ -130,46 +132,46 @@ type NodePool struct {
 	ClusterID          int       `json:"cluster"`
 	InstanceID         string    `json:"instance_id"`
 	Size               string    `json:"instance_size"`
-	CPU                string    `json:"cpu"`
-	Memory             string    `json:"memory"`
-	Labels             string    `json:"labels"`
+	CPU                string    `json:"cpu,omitempty"`
+	Memory             string    `json:"memory,omitempty"`
+	Labels             string    `json:"labels,omitempty"`
 	Autoscaled         bool      `json:"autoscaled"`
-	MinCount           int       `json:"min_count"`
-	MaxCount           int       `json:"max_count"`
+	MinCount           int       `json:"min_count,omitempty"`
+	MaxCount           int       `json:"max_count,omitempty"`
 	Zone               string    `json:"zone,omitempty"`
-	ProviderSubnetID   string    `json:"provider_subnet_id"`
-	ProviderSubnetCidr string    `json:"provider_subnet_cidr"`
+	ProviderSubnetID   string    `json:"provider_subnet_id,omitempty"`
+	ProviderSubnetCidr string    `json:"provider_subnet_cidr,omitempty"`
 	NodeCount          int       `json:"node_count"`
 	Platform           string    `json:"platform"`
 	Channel            string    `json:"channel"`
-	Role               string    `json:"role"`  // []string{"master", "worker"}
-	State              string    `json:"state"` // []string{"draft","active","failed","deleting","deleted"}
+	Role               string    `json:"role"`
+	State              string    `json:"state"`
 	Default            bool      `json:"is_default"`
 	Created            time.Time `json:"created"`
 	Updated            time.Time `json:"updated,omitempty"`
 	Deleted            time.Time `json:"deleted,omitempty"`
 }
 
-// NodeAdd is used for adding master nodes only
+// NodeAdd is used for adding master nodes only (endpoint /clusters/<cluster_id>/add_node)
 type NodeAdd struct {
-	Size string `json:"size"`
-	Count int `json:"node_count"`
-	Group string `json:"group,omitempty"`
-	Role string `json:"role,omitempty"`
-	Zone string `json:"zone,omitempty"`
+	Size               string `json:"size"`
+	Count              int    `json:"node_count"`
+	Group              string `json:"group,omitempty"`
+	Role               string `json:"role,omitempty"`
+	Zone               string `json:"zone,omitempty"`
 	ProviderSubnetID   string `json:"provider_subnet_id,omitempty"`
 	ProviderSubnetCidr string `json:"provider_subnet_cidr,omitempty"`
 }
 
-// NodeAddToPool is used for adding worker nodes to pools 
+// NodeAddToPool is used for adding worker nodes to pools (endpoint /clusters/<cluster_id>/nodepools/add)
 type NodeAddToPool struct {
-        Count int `json:"node_count"`
-        Group string `json:"group,omitempty"`
-	NodePoolID int `json:"node_pool"`
-        Role string `json:"role,omitempty"`
-        Zone string `json:"zone,omitempty"`
-        ProviderSubnetID   string `json:"provider_subnet_id,omitempty"`
-        ProviderSubnetCidr string `json:"provider_subnet_cidr,omitempty"`
+	Count              int    `json:"node_count"`
+	Group              string `json:"group,omitempty"`
+	NodePoolID         int    `json:"node_pool"`
+	Role               string `json:"role,omitempty"`
+	Zone               string `json:"zone,omitempty"`
+	ProviderSubnetID   string `json:"provider_subnet_id,omitempty"`
+	ProviderSubnetCidr string `json:"provider_subnet_cidr,omitempty"`
 }
 
 // PersistentVolume is the representation of a Kubernetes PersistentVolume in

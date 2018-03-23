@@ -65,10 +65,14 @@ func main() {
 		Role:       "worker",
 		NodePoolID: nodepoolid}
 
-	_, err2 := client.AddNodesToNodePool(orgid, clusterid, nodepoolid, newNode)
-	if err2 != nil {
+	nodes, err := client.AddNodesToNodePool(orgid, clusterid, nodepoolid, newNode)
+	if err != nil {
 		spio.ViewResp()
-		log.Fatal(err2)
+		log.Fatal(err)
 	}
-	fmt.Println("Node creation sent, building...")
+	fmt.Println("Node creation sent,")
+        for _, n := range nodes {
+		fmt.Printf("ID: %d, InstanceID: %s", n.PrimaryKey, n.InstanceID)
+	}
+ 	fmt.Println("...building...")
 }

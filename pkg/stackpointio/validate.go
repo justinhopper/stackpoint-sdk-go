@@ -30,13 +30,24 @@ func NewValidationError(object interface{}, message string) *ValidationError {
 	return &ValidationError{message, reflect.TypeOf(object).Name()}
 }
 
-// Validate a NodeAdd request
+// Validate a NodeAdd request (only for master nodes)
 func (nodeAdd NodeAdd) Validate() *ValidationError {
-	if nodeAdd.Count == 0 {
-		return NewValidationError(nodeAdd, "count is zero")
+	if nodeAdd.Count < 1 {
+		return NewValidationError(nodeAdd, "node count must be larger than 0")
 	}
 	if nodeAdd.Size == "" {
 		return NewValidationError(nodeAdd, "node size undefined")
+	}
+	return nil
+}
+
+// Validate a NodeAddToPool request (only for worker nodes, adding to nodepools)
+func (nodeAdd NodeAddToPool) Validate() *ValidationError {
+	if nodeAdd.Count < 1 {
+		return NewValidationError(nodeAdd, "node count must be larger than 0")
+	}
+	if nodeAdd.NodePoolID == 0 {
+		return NewValidationError(nodeAdd, "nodepool ID undefined")
 	}
 	return nil
 }
