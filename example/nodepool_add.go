@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	spio "github.com/StackPointCloud/stackpoint-sdk-go/pkg/stackpointio"
+	spio "github.com/justinhopper/stackpoint-sdk-go/pkg/stackpointio"
 	"log"
 )
 
@@ -42,31 +42,34 @@ func main() {
 	fmt.Printf("Enter number of worker nodes to add into pool: ")
 	fmt.Scanf("%v", &nodeCount)
 
+	if nodeCount > 0 {
+		log.Fatal("You must add at least one node to the new nodepool")
+	}
+
 	newNodepool := spio.NodePool{Name: nodepoolName,
 		ClusterID: clusterid,
 		NodeCount: nodeCount,
 		Platform:  "coreos",
 		State:     "draft",
 		Role:      "worker"}
-	if nodeCount > 0 {
-		// Get list of machine types for provider
-		mOptions, err := client.GetMachSpecs(providers[clusterid])
-		if err != nil {
-			log.Fatal(err.Error())
-		}
 
-		// List machine types
-		fmt.Printf("Node size options for provider %s:\n", providers[clusterid])
-		for _, opt := range mOptions {
-			fmt.Println(opt)
-		}
-		// Get node size selection from user
-		var nodeSize string
-		fmt.Printf("Enter node size: ")
-		fmt.Scanf("%s", &nodeSize)
-
-		newNodepool.Size = nodeSize
+	// Get list of machine types for provider
+	mOptions, err := client.GetMachSpecs(providers[clusterid])
+	if err != nil {
+		log.Fatal(err.Error())
 	}
+
+	// List machine types
+	fmt.Printf("Node size options for provider %s:\n", providers[clusterid])
+	for _, opt := range mOptions {
+		fmt.Println(opt)
+	}
+	// Get node size selection from user
+	var nodeSize string
+	fmt.Printf("Enter node size: ")
+	fmt.Scanf("%s", &nodeSize)
+
+	newNodepool.Size = nodeSize
 
 	// Create new nodepool
 	_, err2 := client.CreateNodePool(orgid, clusterid, newNodepool)

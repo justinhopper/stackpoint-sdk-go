@@ -38,9 +38,6 @@ func (nodeAdd NodeAdd) Validate() *ValidationError {
 	if nodeAdd.Size == "" {
 		return NewValidationError(nodeAdd, "node size undefined")
 	}
-	if nodeAdd.NodePoolID == 0 {
-		return NewValidationError(nodeAdd, "missing pool id")
-	}
 	return nil
 }
 

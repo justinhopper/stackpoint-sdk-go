@@ -7,7 +7,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
-	"github.com/StackPointCloud/stackpoint-sdk-go"
+	"github.com/justinhopper/stackpoint-sdk-go/pkg/stackpointio"
 )
 
 func main() {

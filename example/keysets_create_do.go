@@ -2,13 +2,15 @@ package main
 
 import (
 	"fmt"
-	spio "github.com/StackPointCloud/stackpoint-sdk-go/pkg/stackpointio"
+	spio "github.com/justinhopper/stackpoint-sdk-go/pkg/stackpointio"
 	"log"
 )
 
-const orgid = 111
-const keysetName = "Test DO Keyset"
-const provider = "do"
+const (
+	orgid      = 111
+	keysetName = "Test DO Keyset"
+	provider   = "do"
+)
 
 func main() {
 	// Set up HTTP client with with environment variables for API token and URL

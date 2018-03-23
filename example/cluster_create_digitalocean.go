@@ -2,13 +2,15 @@ package main
 
 import (
 	"fmt"
-	spio "github.com/StackPointCloud/stackpoint-sdk-go/pkg/stackpointio"
+	spio "github.com/justinhopper/stackpoint-sdk-go/pkg/stackpointio"
 	"log"
 )
 
-const orgid = 111
-const provider = "do"
-const clusterName = "Test DigitalOcean Cluster"
+const (
+	orgid       = 111
+	provider    = "do"
+	clusterName = "Test DigitalOcean Cluster"
+)
 
 func main() {
 	// Set up HTTP client with with environment variables for API token and URL

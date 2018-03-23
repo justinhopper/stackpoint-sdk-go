@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	spio "github.com/StackPointCloud/stackpoint-sdk-go/pkg/stackpointio"
+	spio "github.com/justinhopper/stackpoint-sdk-go/pkg/stackpointio"
 	"log"
 )
 

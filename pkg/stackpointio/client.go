@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"errors"
+	"os"
 )
 
 var lastHTTPResponse http.Response
@@ -41,6 +43,19 @@ func NewClient(token, endpoint string, client ...*http.Client) *APIClient {
 		c.httpClient = http.DefaultClient
 	}
 	return c
+}
+
+// NewClientFromEnv creates a new client from environment variables
+func NewClientFromEnv() (*APIClient, error) {
+        token := os.Getenv("SPC_API_TOKEN")
+        if token == "" {
+                return nil, errors.New("Missing token env in SPC_API_TOKEN")
+        }
+        endpoint := os.Getenv("SPC_BASE_API_URL")
+        if endpoint == "" {
+                return nil, errors.New("Missing endpoint env in SPC_BASE_API_URL")
+        }
+        return NewClient(token, endpoint), nil
 }
 
 func (client *APIClient) runRequest(req *http.Request) ([]byte, error) {
@@ -166,7 +181,7 @@ func (client *APIClient) GetUserProfile(username string) (UserProfile, error) {
 
 // GetKeysets gets list of keysets for Org ID
 func (client *APIClient) GetKeysets(orgid int) ([]Keyset, error) {
-	resp, err := c.get(fmt.Sprintf("/orgs/%d/keysets", orgid))
+	resp, err := client.get(fmt.Sprintf("/orgs/%d/keysets", orgid))
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +193,7 @@ func (client *APIClient) GetKeysets(orgid int) ([]Keyset, error) {
 // GetKeyset returns keyset for Org ID and Keyset ID
 func (client *APIClient) GetKeyset(orgid, keysetid int) (Keyset, error) {
 	var keyset Keyset
-	resp, err := c.get(fmt.Sprintf("/orgs/%d/keysets/%d", orgid, keysetid))
+	resp, err := client.get(fmt.Sprintf("/orgs/%d/keysets/%d", orgid, keysetid))
 	if err != nil {
 		return keyset, err
 	}
@@ -188,13 +203,13 @@ func (client *APIClient) GetKeyset(orgid, keysetid int) (Keyset, error) {
 
 // CreateKeyset creates keyset
 func (client *APIClient) CreateKeyset(orgid int, dObj interface{}) ([]byte, error) {
-	return c.post(fmt.Sprintf("/orgs/%d/keysets", orgid), dObj)
+	return client.post(fmt.Sprintf("/orgs/%d/keysets", orgid), dObj)
 }
 
 // DeleteKeyset deletes keyset
 func (client *APIClient) DeleteKeyset(orgid, keysetid int) ([]byte, error) {
 	// Might return Error: 204 No Content, but Delete seems to happen fine
-	return c.delete(fmt.Sprintf("/orgs/%d/keysets/%d", orgid, keysetid))
+	return client.delete(fmt.Sprintf("/orgs/%d/keysets/%d", orgid, keysetid))
 }
 
 // GetMachSpecs returns list of machine types for cloud provider type
@@ -204,7 +219,7 @@ func (client *APIClient) GetMachSpecs(prov string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	content, err := c.runRequest(req)
+	content, err := client.runRequest(req)
 	if err != nil {
 		return nil, err
 	}
@@ -267,7 +282,7 @@ func (client *APIClient) CreateCluster(organizationID int, cluster Cluster) (Clu
 // DeleteCluster deletes cluster
 func (client *APIClient) DeleteCluster(orgid, clusterid int) ([]byte, error) {
 	// Might return Error: 204 No Content, but Delete seems to happen fine
-	return c.delete(fmt.Sprintf("/orgs/%d/clusters/%d", orgid, clusterid))
+	return client.delete(fmt.Sprintf("/orgs/%d/clusters/%d", orgid, clusterid))
 }
 
 // GetNodes gets the nodes associated with a cluster and organization
@@ -307,19 +322,9 @@ func (client *APIClient) DeleteNode(organizationID, clusterID, nodeID int) ([]by
 	path := fmt.Sprintf("/orgs/%d/clusters/%d/nodes/%d", organizationID, clusterID, nodeID)
 	content, err := client.delete(path)
 	return content, err
-	// if err != nil {
-	// 	return Node{}, err
-	// }
-	// glog.V(8).Info(string(content))
-	// var node Node
-	// err = json.Unmarshal(content, &node)
-	// if err != nil {
-	// 	return Node{}, err
-	// }
-	// return node, nil
 }
 
-// AddNodes sends a request to add nodes to a cluster, returns immediately with the Nodes under construction
+// AddNodes sends a request to add master nodes to a cluster
 func (client *APIClient) AddNodes(organizationID, clusterID int, nodeAdd NodeAdd) ([]Node, error) {
 	invalid := Validate(nodeAdd)
 	if invalid != nil {
@@ -339,24 +344,24 @@ func (client *APIClient) AddNodes(organizationID, clusterID int, nodeAdd NodeAdd
 	return response, nil
 }
 
-// AddNodesToNodePool sends a request to add nodes to a nodepool, returns immediately with the Nodes under construction
-func (client *APIClient) AddNodesToNodePool(organizationID, clusterID, nodepoolID int, nodeAdd NodeAdd) ([]Node, error) {
-	invalid := Validate(nodeAdd)
-	if invalid != nil {
-		return []Node{}, invalid
-	}
+// AddNodesToNodePool sends a request to add worker nodes to a nodepool
+func (client *APIClient) AddNodesToNodePool(organizationID, clusterID, nodepoolID int, nodeAdd NodeAddToPool) ([]Node, error) {
+	var respNode []Node
+	//invalid := Validate(nodeAdd)
+	//if invalid != nil {
+		//return respNode, invalid
+	//}
 	path := fmt.Sprintf("/orgs/%d/clusters/%d/nodepools/%d/add", organizationID, clusterID, nodepoolID)
 	content, err := client.post(path, nodeAdd)
 	if err != nil {
-		return []Node{}, err
+		return respNode, err
 	}
 	glog.V(8).Info("add node response: " + string(content))
-	var response []Node
-	err = json.Unmarshal(content, &response)
+	err = json.Unmarshal(content, &respNode)
 	if err != nil {
-		return []Node{}, err
+		return respNode, err
 	}
-	return response, nil
+	return respNode, nil
 }
 
 // GetNodePools gets the NodePools for a cluster
@@ -416,8 +421,7 @@ func (client *APIClient) CreateNodePool(organizationID, clusterID int, pool Node
 
 // DeleteNodePool deletes nodepool
 func (client *APIClient) DeleteNodePool(orgid, clusterid, nodepoolid int) ([]byte, error) {
-	// Might return Error: 204 No Content, but Delete seems to happen fine
-	return c.delete(fmt.Sprintf("/orgs/%d/clusters/%d/nodepools/%d", orgid, clusterid, nodepoolid))
+	return client.delete(fmt.Sprintf("/orgs/%d/clusters/%d/nodepools/%d", orgid, clusterid, nodepoolid))
 }
 
 // sets the cpu and memory of a pool if they are not configured already,

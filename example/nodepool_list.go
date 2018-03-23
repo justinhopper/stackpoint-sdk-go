@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	spio "github.com/StackPointCloud/stackpoint-sdk-go/pkg/stackpointio"
+	spio "github.com/justinhopper/stackpoint-sdk-go/pkg/stackpointio"
 	"log"
 )
 
@@ -29,9 +29,9 @@ func main() {
 		fmt.Println("Sorry, no clusters defined yet")
 		return
 	}
-	// Get cluster ID from user to add node to
+	// Get cluster ID from user to list nodepools from
 	var clusterid int
-	fmt.Printf("Enter cluster ID to add node to: ")
+	fmt.Printf("Enter cluster ID to list nodepools from: ")
 	fmt.Scanf("%d", &clusterid)
 
 	// Get list of nodepools to select from

@@ -2,19 +2,21 @@ package main
 
 import (
 	"fmt"
-	spio "github.com/StackPointCloud/stackpoint-sdk-go/pkg/stackpointio"
+	spio "github.com/justinhopper/stackpoint-sdk-go/pkg/stackpointio"
 	"log"
 )
 
-const orgid = 111
-const provider = "aws"
-const clusterName = "Test AWS Cluster"
-const awsRegion = "us-west-2"
-const awsZone = "us-west-2a"
-const awsNetworkID = "__new__"
-const awsNetworkCidr = "172.23.0.0/16"
-const awsSubnetID = "__new__"
-const awsSubnetCidr = "172.23.5.0/24"
+const (
+	orgid          = 111
+	provider       = "aws"
+	clusterName    = "Test AWS Cluster"
+	awsRegion      = "us-west-2"
+	awsZone        = "us-west-2a"
+	awsNetworkID   = "__new__"
+	awsNetworkCidr = "172.23.0.0/16"
+	awsSubnetID    = "__new__"
+	awsSubnetCidr  = "172.23.5.0/24"
+)
 
 func main() {
 	// Set up HTTP client with with environment variables for API token and URL

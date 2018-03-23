@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	spio "github.com/StackPointCloud/stackpoint-sdk-go/pkg/stackpointio"
+	spio "github.com/justinhopper/stackpoint-sdk-go/pkg/stackpointio"
 	"log"
 )
 
@@ -42,7 +42,7 @@ func main() {
 
 	// List nodes
 	for i := 0; i < len(nodes); i++ {
-		fmt.Printf("Nodes(%d): %v\n", nodes[i].PrimaryKey, nodes[i].Name)
+		fmt.Printf("Nodes(%d): %s node is %s\n", nodes[i].PrimaryKey, nodes[i].Role, nodes[i].State)
 	}
 	if len(nodes) == 0 {
 		fmt.Printf("Sorry, no nodes found\n")

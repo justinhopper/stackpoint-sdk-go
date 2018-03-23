@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
-	spio "github.com/StackPointCloud/stackpoint-sdk-go/pkg/stackpointio"
+	spio "github.com/justinhopper/stackpoint-sdk-go/pkg/stackpointio"
 	"log"
 )
 
 const orgid = 111
-const awsZone = "us-east-2a"
-const awsSubnetID = "subnet-a4b630cc"
-const awsSubnetCidr = "172.31.0.0/24"
+const awsZone = "us-west-2a"
+const awsSubnetID = "subnet-999355d"
+const awsSubnetCidr = "172.23.5.0/24"
 
 func main() {
 	// Set up HTTP client with with environment variables for API token and URL
@@ -60,6 +60,25 @@ func main() {
 		log.Fatalf("Invalid option: %s\n", nodeSize)
 	}
 
+	// Get list of nodepools to select from
+	nps, err := client.GetNodePools(orgid, clusterid)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	// List nodepools
+	for i := 0; i < len(nps); i++ {
+		fmt.Printf("Nodepool(%d): %v (node count: %d)\n", nps[i].PrimaryKey, nps[i].Name, nps[i].NodeCount)
+	}
+	if len(nps) == 0 {
+		fmt.Println("Sorry, no nodepools found")
+		return
+	}
+	// Get nodepool ID from user
+	var nodepoolid int
+	fmt.Printf("Enter nodepool ID to add node to: ")
+	fmt.Scanf("%d", &nodepoolid)
+
 	// Get type of node from user
 	var nodeRole string
 	fmt.Printf("Enter node role (worker or master) to use: ")
@@ -68,6 +87,7 @@ func main() {
 	// Set up new node based on role
 	newNode := spio.NodeAdd{
 		Zone:               awsZone,
+		NodePoolID:         nodepoolid,
 		ProviderSubnetID:   awsSubnetID,
 		ProviderSubnetCidr: awsSubnetCidr}
 	if nodeRole == "master" {
@@ -81,7 +101,7 @@ func main() {
 		fmt.Scanf("%v", &nodeCount)
 
 		newNode.Count = nodeCount
-		newNode.Role = "master"
+		newNode.Role = "worker"
 		newNode.Size = nodeSize
 	} else {
 		log.Fatalf("Invalid node role: %s\n", nodeRole)

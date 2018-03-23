@@ -26,9 +26,6 @@ type ProviderSpecs struct {
 }
 
 // Key struct
-// Provider Type: aws{pub,pvt},azure{subscription,tenant,pub,pvt},do{token},gce{other},gke{other}
-// Solution Type: sysdig{token},turbonomic{url,username,password,scope}
-// SSH Type: pub
 type Key struct {
 	PrimaryKey  int    `json:"pk"`
 	Type        string `json:"key_type"`
@@ -60,7 +57,6 @@ type UserProfile struct {
 }
 
 // Solution is a application or process running with or on a kubernetes cluster,
-// including "deis", "tectonic", "prometheus" and others
 type Solution struct {
 	PrimaryKey int    `json:"pk"`
 	Solution   string `json:"solution"`
@@ -154,23 +150,26 @@ type NodePool struct {
 	Deleted            time.Time `json:"deleted,omitempty"`
 }
 
-// NodeAdd encapsulates the details of a call to add nodes to a cluster.
+// NodeAdd is used for adding master nodes only
 type NodeAdd struct {
-	// Size is a cloudprovider-dependent string that describes the type of node to add
 	Size string `json:"size"`
-	// Count is the number of nodes to add
 	Count int `json:"node_count"`
-	// Group is the name of a stackpointcloud nodepool in the cluster
 	Group string `json:"group,omitempty"`
-	// NodePool is the id of the stackpointcloud nodepool.
-	NodePoolID int `json:"node_pool"`
-	// Role describes the role of this node - ["worker", "master"]
 	Role string `json:"role,omitempty"`
-	// Zone is a cloudprovider-dependent string for the node location
 	Zone string `json:"zone,omitempty"`
-	// ProviderSubnet... are cloudprovider-dependent network restrictions
 	ProviderSubnetID   string `json:"provider_subnet_id,omitempty"`
 	ProviderSubnetCidr string `json:"provider_subnet_cidr,omitempty"`
+}
+
+// NodeAddToPool is used for adding worker nodes to pools 
+type NodeAddToPool struct {
+        Count int `json:"node_count"`
+        Group string `json:"group,omitempty"`
+	NodePoolID int `json:"node_pool"`
+        Role string `json:"role,omitempty"`
+        Zone string `json:"zone,omitempty"`
+        ProviderSubnetID   string `json:"provider_subnet_id,omitempty"`
+        ProviderSubnetCidr string `json:"provider_subnet_cidr,omitempty"`
 }
 
 // PersistentVolume is the representation of a Kubernetes PersistentVolume in
