@@ -6,14 +6,17 @@ import (
 	"log"
 )
 
-const orgid = 111
-
 func main() {
 	// Set up HTTP client with with environment variables for API token and URL
 	client, err := spio.NewClientFromEnv()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+
+        orgid, err := spio.GetIDFromEnv("SPC_ORG_ID")
+        if err != nil {
+                log.Fatal(err.Error())
+        }
 
 	// Get list of configured clusters
 	clusters, err := client.GetClusters(orgid)
@@ -44,7 +47,11 @@ func main() {
 
 	// List nodes
 	for i := 0; i < len(nodes); i++ {
-		fmt.Printf("Nodes(%d): %s node is %s\n", nodes[i].PrimaryKey, nodes[i].Role, nodes[i].State)
+		fmt.Printf("Node(%d): %s node is %s", nodes[i].PrimaryKey, nodes[i].Role, nodes[i].State)
+		if nodes[i].Role == "worker" {
+			fmt.Printf(", in NodePool(%d) %s", nodes[i].NodePoolID, nodes[i].NodePoolName)
+		}
+		fmt.Println()
 	}
 	if len(nodes) == 0 {
 		fmt.Printf("Sorry, no nodes found\n")

@@ -73,14 +73,14 @@ type Cluster struct {
 	Provider           string     `json:"provider"`
 	ProviderKey        int        `json:"provider_keyset"`
 	ProviderKeyName    string     `json:"provider_keyset_name"`
-	ProviderNetworkID  string     `json:"provider_network_id"`
-	ProviderNetworkCdr string     `json:"provider_network_cidr"`
-	ProviderSubnetID   string     `json:"provider_subnet_id"`
-	ProviderSubnetCidr string     `json:"provider_subnet_cidr"`
-	ProviderBalancerID string     `json:"provider_balancer_id"`
+	ProviderNetworkID  string     `json:"provider_network_id,omitempty"`
+	ProviderNetworkCdr string     `json:"provider_network_cidr,omitempty"`
+	ProviderSubnetID   string     `json:"provider_subnet_id,omitempty"`
+	ProviderSubnetCidr string     `json:"provider_subnet_cidr,omitempty"`
+	ProviderBalancerID string     `json:"provider_balancer_id,omitempty"`
 	Region             string     `json:"region"`
 	Zone               string     `json:"zone,omitempty"`
-	State              string     `json:"state"`
+	State              string     `json:"state,omitempty"`
 	ProjectID          string     `json:"project_id,omitempty"`
 	Owner              int        `json:"owner"`
 	Notified           bool       `json:"notified,omitempty"`
@@ -110,7 +110,7 @@ type Node struct {
 	Name         string    `json:"name,omitempty"`
 	ClusterID    int       `json:"cluster"`
 	InstanceID   string    `json:"instance_id"`
-	NodePoolID   int    `json:"pool,omitempty"`
+	NodePoolID   int       `json:"pool,omitempty"`
 	NodePoolName string    `json:"pool_name,omitempty"`
 	Role         string    `json:"role"`
 	Group        string    `json:"group_name,omitempty"`
@@ -120,7 +120,7 @@ type Node struct {
 	Image        string    `json:"image"`
 	Location     string    `json:"location"`
 	Size         string    `json:"size"`
-	State        string    `json:"state"`
+	State        string    `json:"state,omitempty"`
 	Created      time.Time `json:"created"`
 	Updated      time.Time `json:"updated,omitempty"`
 }
@@ -144,8 +144,8 @@ type NodePool struct {
 	NodeCount          int       `json:"node_count"`
 	Platform           string    `json:"platform"`
 	Channel            string    `json:"channel"`
-	Role               string    `json:"role"`
-	State              string    `json:"state"`
+	Role               string    `json:"role,omitempty"`
+	State              string    `json:"state,omitempty"`
 	Default            bool      `json:"is_default"`
 	Created            time.Time `json:"created"`
 	Updated            time.Time `json:"updated,omitempty"`

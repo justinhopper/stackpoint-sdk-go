@@ -6,7 +6,6 @@ import (
 	"log"
 )
 
-const orgid = 111
 const nodepoolName = "Test Nodepool"
 
 func main() {
@@ -15,6 +14,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+
+        orgid, err := spio.GetIDFromEnv("SPC_ORG_ID")
+        if err != nil {
+                log.Fatal(err.Error())
+        }
 
 	// Get list of configured clusters
 	clusters, err := client.GetClusters(orgid)
@@ -45,20 +49,11 @@ func main() {
 	if nodeCount < 1 {
 		log.Fatal("You must add at least one node to the new nodepool")
 	}
-
-	newNodepool := spio.NodePool{Name: nodepoolName,
-		ClusterID: clusterid,
-		NodeCount: nodeCount,
-		Platform:  "coreos",
-		State:     "draft",
-		Role:      "worker"}
-
 	// Get list of machine types for provider
 	mOptions, err := client.GetMachSpecs(providers[clusterid])
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-
 	// List machine types
 	fmt.Printf("Node size options for provider %s:\n", providers[clusterid])
 	for _, opt := range mOptions {
@@ -69,7 +64,10 @@ func main() {
 	fmt.Printf("Enter node size: ")
 	fmt.Scanf("%s", &nodeSize)
 
-	newNodepool.Size = nodeSize
+        newNodepool := spio.NodePool{Name: nodepoolName,
+                NodeCount: nodeCount,
+		Size:      nodeSize,
+                Platform:  "coreos"}
 
 	// Create new nodepool
 	pool, err := client.CreateNodePool(orgid, clusterid, newNodepool)

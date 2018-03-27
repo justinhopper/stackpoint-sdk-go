@@ -7,9 +7,8 @@ import (
 )
 
 const (
-	orgid       = 111
 	provider    = "do"
-	clusterName = "Test DigitalOcean Cluster"
+	clusterName = "Test DigitalOcean Cluster Go SDK"
 )
 
 func main() {
@@ -18,6 +17,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+
+        orgid, err := spio.GetIDFromEnv("SPC_ORG_ID")
+        if err != nil {
+                log.Fatal(err.Error())
+        }
 
 	sshKeysetid, err := spio.GetIDFromEnv("SPC_SSH_KEYSET")
 	if err != nil {
@@ -59,7 +63,6 @@ func main() {
 		WorkerCount:       2,
 		WorkerSize:        nodeSize,
 		Region:            "nyc1",
-		State:             "draft",
 		KubernetesVersion: "v1.8.3",
 		RbacEnabled:       true,
 		DashboardEnabled:  true,
@@ -68,7 +71,6 @@ func main() {
 		Channel:           "stable",
 		SSHKeySet:         sshKeysetid,
 		Solutions:         []spio.Solution{newSolution}}
-
 	cluster, err := client.CreateCluster(orgid, newCluster)
 	if err != nil {
 		spio.ViewResp()

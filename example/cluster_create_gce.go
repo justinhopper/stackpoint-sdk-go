@@ -7,9 +7,8 @@ import (
 )
 
 const (
-	orgid       = 111
 	provider    = "gce"
-	clusterName = "Test GCE Cluster"
+	clusterName = "Test GCE Cluster Go SDK"
 	region      = "us-west1-a"
 )
 
@@ -19,6 +18,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+
+        orgid, err := spio.GetIDFromEnv("SPC_ORG_ID")
+        if err != nil {
+                log.Fatal(err.Error())
+        }
 
 	sshKeysetid, err := spio.GetIDFromEnv("SPC_SSH_KEYSET")
 	if err != nil {
@@ -60,7 +64,6 @@ func main() {
 		WorkerCount:       2,
 		WorkerSize:        nodeSize,
 		Region:            "us-west1-a",
-		State:             "draft",
 		KubernetesVersion: "v1.8.7",
 		RbacEnabled:       true,
 		DashboardEnabled:  true,

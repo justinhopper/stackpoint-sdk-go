@@ -7,7 +7,6 @@ import (
 )
 
 const (
-	orgid      = 111
 	keysetName = "Test DO Keyset"
 	provider   = "do"
 )
@@ -18,6 +17,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+
+        orgid, err := spio.GetIDFromEnv("SPC_ORG_ID")
+        if err != nil {
+                log.Fatal(err.Error())
+        }
 
 	// Gather access token for DO
 	var doToken string

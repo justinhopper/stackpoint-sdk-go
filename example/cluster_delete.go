@@ -6,14 +6,17 @@ import (
 	"log"
 )
 
-const orgid = 111
-
 func main() {
 	// Set up HTTP client with with environment variables for API token and URL
 	client, err := spio.NewClientFromEnv()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+
+        orgid, err := spio.GetIDFromEnv("SPC_ORG_ID")
+        if err != nil {
+                log.Fatal(err.Error())
+        }
 
 	// Fetch list of configured clusters
 	clusters, err := client.GetClusters(orgid)

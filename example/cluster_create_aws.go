@@ -7,14 +7,13 @@ import (
 )
 
 const (
-	orgid          = 111
 	provider       = "aws"
-	clusterName    = "Test AWS Cluster"
+	clusterName    = "Test AWS Cluster Go SDK"
 	awsRegion      = "us-west-2"
 	awsZone        = "us-west-2a"
-	awsNetworkID   = "__new__"
+	awsNetworkID   = "__new__"   // replace with your AWS VPC ID if you have one
 	awsNetworkCidr = "172.23.0.0/16"
-	awsSubnetID    = "__new__"
+	awsSubnetID    = "__new__"   // replace with your AWS subnet ID if you have one
 	awsSubnetCidr  = "172.23.5.0/24"
 )
 
@@ -24,6 +23,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+
+        orgid, err := spio.GetIDFromEnv("SPC_ORG_ID")
+        if err != nil {
+                log.Fatal(err.Error())
+        }
 
 	sshKeysetid, err := spio.GetIDFromEnv("SPC_SSH_KEYSET")
 	if err != nil {
@@ -66,7 +70,6 @@ func main() {
 		WorkerSize:         nodeSize,
 		Region:             awsRegion,
 		Zone:               awsZone,
-		State:              "draft",
 		ProviderNetworkID:  awsNetworkID,
 		ProviderNetworkCdr: awsNetworkCidr,
 		ProviderSubnetID:   awsSubnetID,
@@ -85,6 +88,6 @@ func main() {
 		spio.ViewResp()
 		log.Fatal(err)
 	}
-	fmt.Printf("Cluster created (ID: %d) (instance name: %s), building...\n", cluster.PrimaryKey, cluster.InstanceID) 
+	fmt.Printf("Cluster created (ID: %d) (instance name: %s), building...\n", cluster.PrimaryKey, cluster.InstanceID)
 
 }
